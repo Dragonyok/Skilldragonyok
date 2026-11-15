@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เกมผจญภัยวิทยาศาสตร์สุด ⏱️🪙</title>
+    <style>
+        body 
+        <!-- ปุ่มกลับหน้าหลัก -->
+<a href="index.html" class="back-home-btn" title="กลับหน้าเมนูหลัก">
+    🏠 กลับหน้าหลัก
+</a>{
+            font-family: 'Tahoma', sans-serif;
+            background: linear-gradient(135deg, #a1c4fd, #c2e9fb);
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .game-container {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            width: 450px;
+            text-align: center;
+            position: relative;
+        }
+        h2 { color: #0288d1; margin-top: 10px; }
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            background: #29b6f6;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-weight: bold;
+        }
+        .btn:hover { background: #0288d1; }
+        .level-btn { background: #66bb6a; }
+        .level-btn:hover { background: #43a047; }
+        
+        /* สไตล์ปุ่ม Back */
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: #f0f0f0;
+            color: #555;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        .back-btn:hover {
+            background: #e0e0e0;
+            color: #000;
+        }
+
+        .info-bar {
+            display: flex;
+            justify-content: space-between;
+            background: #e1f5fe;
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-weight: bold;
+            margin-top: 15px;
+            margin-bottom: 20px;
+            color: #01579b;
+        }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <!-- หน้าเลือกเลเวล -->
+    <div id="screen-menu">
+        <h2>🧪 ผจญภัยวิทยาศาสตร์</h2>
+        <p>เลือกช่วงอายุและระดับความยาก:</p>
+        <button class="btn level-btn" onclick="startGame(1)">🌱 ระดับง่าย (อายุ 6-8 ปี)</button>
+        <button class="btn level-btn" onclick="startGame(2)" style="background: #ffa726;">⭐ ระดับปานกลาง (อายุ 9-11 ปี)</button>
+        <button class="btn level-btn" onclick="startGame(3)" style="background: #ef5350;">🔥 ระดับยาก (อายุ 12-15 ปี)</button>
+    </div>
+
+    <!-- หน้าเล่นเกม -->
+    <div id="screen-game" class="hidden">
+        <button class="back-btn" onclick="goBackToMenu()">⬅️ หน้าหลัก</button>
+        <h2>🧪 ผจญภัยวิทยาศาสตร์</h2>
+        <div class="info-bar">
+            <span id="timer-text">⏱️ เวลา: 10s</span>
+            <span id="coin-text">🪙 เหรียญ: 0</span>
+        </div>
+        <p id="question" style="font-size: 18px; font-weight: bold; min-height: 50px;"></p>
+        <div id="options"></div>
+    </div>
+
+    <!-- หน้าสรุปผล -->
+    <div id="screen-score" class="hidden">
+        <h2>🧪 ผจญภัยวิทยาศาสตร์</h2>
+        <h3>🎉 จบเกมแล้ว!</h3>
+        <p id="final-result" style="font-size: 18px; margin: 20px 0;"></p>
+        <button class="btn" onclick="resetGame()">เล่นใหม่อีกครั้ง 🔄</button>
+        <button class="btn" style="background: #78909c;" onclick="goBackToMenu()">กลับหน้าเลือกเลเวล 🏠</button>
+    </div>
+</div>
+
+<script>
+    const allQuestions = {
+        1: [
+            { q: "สัตว์ข้อใดบินได้?", options: ["ปลาทู", "นกแก้ว", "เต่า", "กบ"], answer: 1 },
+            { q: "ดวงอาทิตย์ขึ้นทางทิศใด?", options: ["ทิศตะวันออก", "ทิศตะวันตก", "ทิศเหนือ", "ทิศใต้"], answer: 0 },
+            { q: "น้ำแข็งคือสถานะใดของน้ำ?", options: ["แก๊ส", "ของเหลว", "ของแข็ง", "พลาสติก"], answer: 2 }
+        ],
+        2: [
+            { q: "แก๊สใดที่มนุษย์ใช้หายใจเพื่อดำรงชีวิต?", options: ["คาร์บอนไดออกไซด์", "ออกซิเจน", "ไนโตรเจน", "ฮีเลียม"], answer: 1 },
+            { q: "อวัยวะใดทำหน้าที่สูบฉีดเลือดไปทั่วร่างกาย?", options: ["สมอง", "ปอด", "หัวใจ", "ตับ"], answer: 2 },
+            { q: "ดาวเคราะห์ดวงใดได้ชื่อว่าเป็น 'ดาวแดง'?", options: ["ดาวศุกร์", "ดาวอังคาร", "ดาวพฤหัสบดี", "ดาวเสาร์"], answer: 1 }
+        ],
+        3: [
+            { q: "หน่วยพื้นฐานที่เล็กที่สุดของสิ่งมีชีวิตคืออะไร?", options: ["เซลล์", "เนื้อเยื่อ", "อวัยวะ", "อะตอม"], answer: 0 },
+            { q: "ข้อใดคือสูตรทางเคมีของน้ำบริสุทธิ์?", options: ["CO2", "NaCl", "H2O", "O2"], answer: 2 },
+            { q: "แรงโน้มถ่วงของโลกถูกค้นพบโดยนักวิทยาศาสตร์ท่านใด?", options: ["อัลเบิร์ต ไอน์สไตน์", "เซอร์ ไอแซก นิวตัน", "โทมัส เอดิสัน", "กาลิเลโอ"], answer: 1 }
+        ]
+    };
+
+    let currentLevel = 1;
+    let currentQIndex = 0;
+    let score = 0;
+    let coins = 0;
+    let timeLeft = 10;
+    let timer;
+
+    const menuScreen = document.getElementById("screen-menu");
+    const gameScreen = document.getElementById("screen-game");
+    const scoreScreen = document.getElementById("screen-score");
+    const questionEl = document.getElementById("question");
+    const optionsEl = document.getElementById("options");
+    const timerText = document.getElementById("timer-text");
+    const coinText = document.getElementById("coin-text");
+    const finalResultEl = document.getElementById("final-result");
+
+    function startGame(level) {
+        currentLevel = level;
+        currentQIndex = 0;
+        score = 0;
+        coins = 0;
+        coinText.innerText = `🪙 เหรียญ: 0`;
+        menuScreen.classList.add("hidden");
+        scoreScreen.classList.add("hidden");
+        gameScreen.classList.remove("hidden");
+        loadQuestion();
+    }
+
+    function loadQuestion() {
+        clearInterval(timer);
+        let questions = allQuestions[currentLevel];
+        
+        if (currentQIndex < questions.length) {
+            let q = questions[currentQIndex];
+            questionEl.innerText = `ข้อที่ ${currentQIndex + 1}: ${q.q}`;
+            optionsEl.innerHTML = "";
+            
+            q.options.forEach((opt, index) => {
+                let btn = document.createElement("button");
+                btn.innerText = opt;
+                btn.className = "btn";
+                btn.onclick = () => checkAnswer(index);
+                optionsEl.appendChild(btn);
+            });
+
+            // เริ่มนับเวลา 10 วินาที
+            timeLeft = 10;
+            timerText.innerText = `⏱️ เวลา: ${timeLeft}s`;
+            timer = setInterval(() => {
+                timeLeft--;
+                timerText.innerText = `⏱️ เวลา: ${timeLeft}s`;
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    alert("⏰ หมดเวลา! ข้อนี้ไม่ได้คะแนนนะ");
+                    nextQuestion();
+                }
+            }, 1000);
+
+        } else {
+            showScore();
+        }
+    }
+
+    function checkAnswer(selected) {
+        clearInterval(timer);
+        let q = allQuestions[currentLevel][currentQIndex];
+        
+        if (selected === q.answer) {
+            score++;
+            let earnedCoins = 10 + (timeLeft * 2);
+            coins += earnedCoins;
+            alert(`✅ ถูกต้อง! รับไป ${earnedCoins} เหรียญ 🪙`);
+        } else {
+            alert(`❌ ยังไม่ถูกต้องนะ ลองใหม่ข้อถัดไป!`);
+        }
+        nextQuestion();
+    }
+
+    function nextQuestion() {
+        currentQIndex++;
+        coinText.innerText = `🪙 เหรียญ: ${coins}`;
+        loadQuestion();
+    }
+
+    function showScore() {
+        gameScreen.classList.add("hidden");
+        scoreScreen.classList.remove("hidden");
+        let totalQ = allQuestions[currentLevel].length;
+        finalResultEl.innerHTML = `ตอบถูก: ${score} / ${totalQ} ข้อ<br>สะสมเหรียญรวม: <b>${coins} 🪙</b>`;
+    }
+
+    function resetGame() {
+        startGame(currentLevel);
+    }
+
+    function goBackToMenu() {
+        clearInterval(timer); // หยุดเวลาทันทีที่กดกลับ
+        gameScreen.classList.add("hidden");
+        scoreScreen.classList.add("hidden");
+        menuScreen.classList.remove("hidden");
+    }
+</script>
+
+</body>
+</html>

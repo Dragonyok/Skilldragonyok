@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เกมฝึกคิดตัวเลข: ผจญภัยตามช่วงอายุ</title>
+    <style>
+        body 
+        <!-- ปุ่มกลับหน้าหลัก -->
+<a href="index.html" class="back-home-btn" title="กลับหน้าเมนูหลัก">
+    🏠 กลับหน้าหลัก
+</a>{
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #74b9ff, #a29bfe);
+            color: #2d3436;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .game-container {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            max-width: 420px;
+            width: 100%;
+            position: relative;
+        }
+        h1 {
+            color: #0984e3;
+            font-size: 22px;
+            margin-bottom: 5px;
+        }
+        .subtitle {
+            font-size: 14px;
+            color: #636e72;
+            margin-bottom: 15px;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            background: #dfe6e9;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .question-box {
+            font-size: 32px;
+            font-weight: bold;
+            margin: 20px 0;
+            color: #2d3436;
+            background: #fab1a0;
+            padding: 15px;
+            border-radius: 10px;
+        }
+        input[type="number"] {
+            width: 80%;
+            padding: 12px;
+            font-size: 24px;
+            text-align: center;
+            border: 2px solid #b2bec3;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        button {
+            background-color: #00b894;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #019875;
+        }
+        /* สไตล์สำหรับปุ่มย้อนกลับ */
+        .btn-back {
+            background-color: #ff7675;
+            margin-top: 10px;
+        }
+        .btn-back:hover {
+            background-color: #d63031;
+        }
+        .message {
+            margin-top: 15px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .age-select-box {
+            margin-bottom: 20px;
+            background: #f1f2f6;
+            padding: 15px;
+            border-radius: 12px;
+        }
+        select {
+            padding: 8px 12px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: 2px solid #0984e3;
+            outline: none;
+            margin-top: 5px;
+            width: 100%;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <h1>🤖 ถอดรหัสเมืองสมองกล</h1>
+    <div class="subtitle">เกมฝึกคิดเลขสนุกๆ สำหรับเด็กๆ</div>
+    
+    <!-- หน้าเลือกช่วงอายุ -->
+    <div id="setup-screen" class="age-select-box">
+        <label for="ageGroup"><b>กรุณาเลือกช่วงอายุของคุณ:</b></label>
+        <select id="ageGroup">
+            <option value="7-8">อายุ 7-8 ขวบ (บวก/ลบ เลขน้อย)</option>
+            <option value="9-10">อายุ 9-10 ขวบ (บวก/ลบ/คูณ เลขปานกลาง)</option>
+            <option value="11-12">อายุ 11-12 ขวบ (บวก/ลบ/คูณ/หาร เต็มรูปแบบ)</option>
+        </select>
+        <br><br>
+        <button onclick="startGame()">เริ่มเกมกันเลย! 🚀</button>
+    </div>
+
+    <!-- หน้าเล่นเกม (ซ่อนไว้ก่อนจนกว่าจะกดเริ่ม) -->
+    <div id="game-screen" class="hidden">
+        <div class="stats">
+            <div>คะแนน: <span id="score">0</span></div>
+            <div>เวลา: <span id="timer">40</span>s</div>
+        </div>
+        
+        <div class="question-box" id="question">กำลังโหลด...</div>
+        <input type="number" id="answerInput" placeholder="พิมพ์คำตอบ..." autocomplete="off">
+        <br>
+        <button onclick="checkAnswer()">ส่งคำตอบ 🚀</button>
+        <!-- ปุ่มย้อนกลับไปหน้าเลือกอายุ -->
+        <button class="btn-back" onclick="goBackToSetup()">⬅️ กลับไปหน้าเลือกอายุ</button>
+        <div class="message" id="message"></div>
+    </div>
+</div>
+
+<script>
+    let score = 0;
+    let timeLeft = 40;
+    let correctAnswer = 0;
+    let timerInterval;
+    let gameActive = false;
+    let currentAgeRange = "7-8";
+
+    const setupScreen = document.getElementById("setup-screen");
+    const gameScreen = document.getElementById("game-screen");
+    const questionEl = document.getElementById("question");
+    const answerInput = document.getElementById("answerInput");
+    const scoreEl = document.getElementById("score");
+    const timerEl = document.getElementById("timer");
+    const messageEl = document.getElementById("message");
+    const ageSelect = document.getElementById("ageGroup");
+
+    function startGame() {
+        currentAgeRange = ageSelect.value;
+        setupScreen.classList.add("hidden");
+        gameScreen.classList.remove("hidden");
+
+        score = 0;
+        timeLeft = currentAgeRange === "7-8" ? 45 : (currentAgeRange === "9-10" ? 40 : 35);
+        gameActive = true;
+        scoreEl.innerText = score;
+        timerEl.innerText = timeLeft;
+        messageEl.innerText = "";
+        answerInput.disabled = false;
+        
+        generateQuestion();
+        
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            timerEl.innerText = timeLeft;
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                endGame();
+            }
+        }, 1000);
+    }
+
+    function generateQuestion() {
+        let ops = ['+'];
+        let maxNum = 20;
+
+        if (currentAgeRange === "7-8") {
+            ops = ['+', '-'];
+            maxNum = 20;
+        } else if (currentAgeRange === "9-10") {
+            ops = ['+', '-', '*'];
+            maxNum = 50;
+        } else if (currentAgeRange === "11-12") {
+            ops = ['+', '-', '*', '/'];
+            maxNum = 100;
+        }
+
+        const op = ops[Math.floor(Math.random() * ops.length)];
+        let num1, num2;
+
+        if (op === '+') {
+            num1 = Math.floor(Math.random() * maxNum) + 1;
+            num2 = Math.floor(Math.random() * maxNum) + 1;
+            correctAnswer = num1 + num2;
+        } else if (op === '-') {
+            num1 = Math.floor(Math.random() * maxNum) + 5;
+            num2 = Math.floor(Math.random() * num1) + 1;
+            correctAnswer = num1 - num2;
+        } else if (op === '*') {
+            num1 = Math.floor(Math.random() * 12) + 1;
+            num2 = Math.floor(Math.random() * 12) + 1;
+            correctAnswer = num1 * num2;
+        } else if (op === '/') {
+            num2 = Math.floor(Math.random() * 10) + 1;
+            let multiplier = Math.floor(Math.random() * 10) + 1;
+            num1 = num2 * multiplier;
+            correctAnswer = multiplier;
+        }
+
+        let displayOp = op;
+        if (op === '*') displayOp = '×';
+        if (op === '/') displayOp = '÷';
+
+        questionEl.innerText = `${num1} ${displayOp} ${num2} = ?`;
+        answerInput.value = "";
+        answerInput.focus();
+    }
+
+    function checkAnswer() {
+        if (!gameActive) return;
+
+        let userAnsw = parseInt(answerInput.value);
+        if (userAnsw === correctAnswer) {
+            score += 10;
+            scoreEl.innerText = score;
+            messageEl.style.color = "#00b894";
+            messageEl.innerText = "🎉 ถูกต้อง! เก่งมาก +10 แต้ม";
+            generateQuestion();
+        } else {
+            messageEl.style.color = "#d63031";
+            messageEl.innerText = "❌ ผิดจ้า ลองใหม่อีกครั้ง!";
+            answerInput.value = "";
+            answerInput.focus();
+        }
+    }
+
+    function endGame() {
+        gameActive = false;
+        answerInput.disabled = true;
+        questionEl.innerText = "หมดเวลา! ⏰";
+        messageEl.style.color = "#0984e3";
+        // แสดงปุ่มย้อนกลับหรือเล่นใหม่ในหน้าจอจบเกมด้วย
+        messageEl.innerHTML = `จบเกมสำหรับช่วงอายุ <b>${currentAgeRange} ปี</b><br>ทำคะแนนได้ <b>${score}</b> คะแนน<br><br><button onclick="startGame()">เล่นรอบนี้อีกครั้ง 🔄</button><br><button class="btn-back" onclick="goBackToSetup()">⬅️ กลับไปหน้าเลือกอายุ</button>`;
+    }
+
+    // ฟังก์ชันสำหรับกดปุ่มย้อนกลับ
+    function goBackToSetup() {
+        clearInterval(timerInterval); // หยุดเวลาทันที
+        gameActive = false;
+        gameScreen.classList.add("hidden");
+        setupScreen.classList.remove("hidden");
+    }
+
+    answerInput.addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            checkAnswer();
+        }
+    });
+</script>
+
+</body>
+</html>

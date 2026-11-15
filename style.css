@@ -1,0 +1,129 @@
+body {
+    font-family: 'Sarabun', sans-serif;
+    background-color: #f0f4f8;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.game-container {
+    text-align: center;
+    background: white;
+    padding: 15px;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    width: 95%;
+    max-width: 400px;
+    position: relative;
+}
+
+/* สไตล์ปุ่มกลับหน้าแรก */
+.home-btn {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    background-color: #ed8936;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    font-size: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.home-btn:active {
+    background-color: #dd6b20;
+}
+
+h1 {
+    margin-top: 25px; /*เว้นพื้นที่ให้ปุ่ม Home ด้านบนเล็กน้อย*/
+}
+
+.level-selector {
+    display: flex;
+    gap: 5px;
+    overflow-x: auto;
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+    justify-content: flex-start;
+}
+
+.lvl-btn {
+    padding: 6px 10px;
+    font-size: 13px;
+    background-color: #e2e8f0;
+    color: #4a5568;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.lvl-btn.active {
+    background-color: #4299e1;
+    color: white;
+    font-weight: bold;
+}
+
+.lvl-btn:disabled {
+    background-color: #edf2f7;
+    color: #a0aec0;
+    cursor: not-allowed;
+}
+
+.grid-board {
+    display: grid;
+    gap: 4px;
+    margin: 15px auto;
+    justify-content: center;
+}
+
+.cell {
+    width: 45px;
+    height: 45px;
+    background-color: #e2e8f0;
+    border-radius: 6px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+}
+
+.cell.goal { background-color: #68d391; }
+.cell.obstacle { background-color: #cbd5e0; }
+
+.controls {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.row-btns {
+    display: flex;
+    gap: 15px;
+}
+
+button {
+    background-color: #4299e1;
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    font-size: 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+button:active { background-color: #3182ce; }
+
+.reset-btn {
+    background-color: #cbd5e0;
+    color: #2d3748;
+    margin-top: 10px;
+    width: 100%;
+}

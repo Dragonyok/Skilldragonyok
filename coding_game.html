@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coding Adventure - 10 Levels</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- ปุ่มกลับหน้าหลัก -->
+<a href="index.html" class="back-home-btn" title="กลับหน้าเมนูหลัก">
+    🏠 กลับหน้าหลัก
+</a>
+
+    <div class="game-container">
+        <!-- ปุ่มกลับหน้าหลัก -->
+        <button class="home-btn" onclick="goToHome()">🏠 หน้าแรก</button>
+
+        <h1>🤖 ผจญภัยเมืองสมองกล</h1>
+        
+        <!-- แผงเลือกด่าน (10 ด่าน) -->
+        <div class="level-selector" id="level-selector"></div>
+
+        <div id="status">สถานะ: เริ่มเล่นจากด่านที่ 1 ก่อนนะ!</div>
+        <div id="score" style="font-weight: bold; color: #d69e2e; margin: 5px 0;">เหรียญที่เก็บได้: 0 / 0</div>
+        
+        <!-- กระดานเกม -->
+        <div class="grid-board" id="board"></div>
+
+        <!-- แผงควบคุมคำสั่ง -->
+        <div class="controls">
+            <button onclick="movePlayer('UP')">⬆️ เดินขึ้น</button>
+            <div class="row-btns">
+                <button onclick="movePlayer('LEFT')">⬅️ ซ้าย</button>
+                <button onclick="movePlayer('RIGHT')">ขวา ➡️</button>
+            </div>
+            <button onclick="movePlayer('DOWN')">⬇️ เดินลง</button>
+        </div>
+        
+        <button class="reset-btn" onclick="resetGame()">🔄 เริ่มด่านนี้ใหม่</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

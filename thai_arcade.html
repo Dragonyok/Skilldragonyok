@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thai Word Arcade Adventure</title>
+    <style>
+        :root {
+            --primary: #ff6b6b;
+            --secondary: #48dbfb;
+            --dark: #222f3e;
+            --light: #f1f2f6;
+            --success: #1dd1a1;
+            --warning: #feca57;
+        }
+        body {
+            font-family: 'Tahoma', sans-serif;
+            background: linear-gradient(135deg, #1e3799, #0984e3);
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: var(--dark);
+        }
+        .game-card {
+            background: #fff;
+            width: 100%;
+            max-width: 420px;
+            padding: 20px;
+            border-radius: 24px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+            text-align: center;
+            box-sizing: border-box;
+            position: relative;
+            overflow: hidden;
+        }
+        h1 { color: #ff4757; font-size: 22px; margin-bottom: 5px; }
+        h2 { font-size: 18px; color: #2f3640; margin-bottom: 15px; }
+        p { font-size: 14px; color: #57606f; }
+        
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            margin: 8px 0;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            transition: 0.2s;
+        }
+        .btn:active { transform: scale(0.96); }
+        .btn-blue { background: #0984e3; }
+        .btn-green { background: var(--success); }
+        .btn-warning { background: #ff9f43; color: white; }
+        .btn-back { background: #718093; font-size: 14px; padding: 8px 15px; width: auto; margin-bottom: 10px; }
+
+        .menu-grid { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+        
+        .hud {
+            display: flex;
+            justify-content: space-between;
+            background: var(--light);
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .box-display {
+            background: #f8f9fa;
+            border: 2px dashed #ced6e0;
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+        }
+
+        .question-text {
+            font-size: 22px;
+            font-weight: bold;
+            color: #2f3640;
+            margin: 10px 0;
+        }
+
+        .choices-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 2px solid #ced6e0;
+            border-radius: 10px;
+            text-align: center;
+            box-sizing: border-box;
+            outline: none;
+            margin-bottom: 10px;
+        }
+
+        .runner-track {
+            background: #3d3d3d;
+            height: 120px;
+            border-radius: 15px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        .runner-player {
+            position: absolute;
+            left: 30px;
+            font-size: 30px;
+            transition: bottom 0.2s;
+        }
+        .runner-item {
+            position: absolute;
+            right: -40px;
+            font-size: 24px;
+            background: white;
+            padding: 5px;
+            border-radius: 50%;
+        }
+
+        .hidden { display: none !important; }
+        .flex-row { display: flex; justify-content: space-between; align-items: center; }
+    </style>
+</head>
+<body>
+
+<div class="game-card">
+    <!-- หน้าหลัก -->
+    <div id="screen-home">
+        <h1>🇹🇭 Thai Word Arcade</h1>
+        <p>ผจญภัยฝึกภาษาไทย 3 สไตล์สุดมันส์!</p>
+        <div class="menu-grid">
+            <button class="btn btn-blue" onclick="openLevelSelect(1)">🏃‍♂️ 1. วิ่งเก็บคำตรงหมวด</button>
+            <button class="btn btn-warning" onclick="openLevelSelect(2)">⚔️ 2. ศึกวรรณยุกต์ปราบมอน</button>
+            <button class="btn btn-green" onclick="openLevelSelect(3)">🔍 3. นักสืบคำราชาศัพท์</button>
+        </div>
+    </div>
+
+    <!-- หน้าเลือกระดับความยาก / อายุ -->
+    <div id="screen-level" class="hidden">
+        <button class="btn btn-back" onclick="goHome()">⬅️ หน้าหลัก</button>
+        <h2 id="mode-title">เลือกระดับความยาก</h2>
+        <div class="menu-grid">
+            <button class="btn btn-green" onclick="startGame(1)">🌱 ง่าย (อนุบาล - ป.2)</button>
+            <button class="btn btn-blue" onclick="startGame(2)">⭐ ปานกลาง (ป.3 - ป.4)</button>
+            <button class="btn btn-warning" onclick="startGame(3)">🔥 ยาก (ป.5 - ป.6 ขึ้นไป)</button>
+        </div>
+    </div>
+
+    <!-- เกมที่ 1: วิ่งเก็บคำตรงหมวด -->
+    <div id="game-1" class="hidden">
+        <div class="flex-row">
+            <button class="btn btn-back" onclick="toLevelSelect()">⬅️ ออก</button>
+            <span style="font-size: 13px; font-weight: bold; color: #0984e3;" id="g1-category">หมวด: ผลไม้</span>
+        </div>
+        <div class="hud">
+            <span>🪙 เหรียญ: <span id="g1-score">0</span></span>
+            <span>⏱️ เวลา: <span id="g1-timer">20</span>s</span>
+        </div>
+        <div class="runner-track">
+            <div id="g1-player" class="runner-player">🏃</div>
+            <div id="g1-item" class="runner-item" style="right: -50px;">🍎</div>
+        </div>
+        <p>กดปุ่มด้านล่างเพื่อเลือกคำตอบที่ถูกต้องตามหมวดหมู่ข้างบน!</p>
+        <div class="choices-grid" id="g1-choices"></div>
+    </div>
+
+    <!-- เกมที่ 2: ศึกวรรณยุกต์ประลองยุทธ์ -->
+    <div id="game-2" class="hidden">
+        <div class="flex-row">
+            <button class="btn btn-back" onclick="toLevelSelect()">⬅️ ออก</button>
+            <span style="font-size: 13px; font-weight: bold; color: #e17055;">มอนสเตอร์ปรากฏตัว! 👾</span>
+        </div>
+        <div class="hud">
+            <span>🪙 เหรียญ: <span id="g2-score">0</span></span>
+            <span>⏱️ เวลา: <span id="g2-timer">15</span>s</span>
+        </div>
+        <div class="box-display">
+            <div style="font-size: 35px;">👾 vs 🦸‍♂️</div>
+            <div class="question-text" id="g2-word">คำถาม</div>
+            <p id="g2-sub">โจทย์การผัน/คำศัพท์</p>
+        </div>
+        <div class="choices-grid" id="g2-choices"></div>
+    </div>
+
+    <!-- เกมที่ 3: นักสืบคำราชาศัพท์ -->
+    <div id="game-3" class="hidden">
+        <div class="flex-row">
+            <button class="btn btn-back" onclick="toLevelSelect()">⬅️ ออก</button>
+            <span style="font-size: 13px; font-weight: bold; color: #00b894;">ไขปริศนา 🔍</span>
+        </div>
+        <div class="hud">
+            <span>🪙 เหรียญ: <span id="g3-score">0</span></span>
+            <span>⏱️ เวลา: <span id="g3-timer">20</span>s</span>
+        </div>
+        <div class="box-display">
+            <div class="question-text" id="g3-question">คำศัพท์</div>
+        </div>
+        <div class="choices-grid" id="g3-choices"></div>
+    </div>
+
+    <!-- หน้าจอจบเกม / สรุปผล -->
+    <div id="screen-gameover" class="hidden">
+        <h2>🎉 สรุปผลการผจญภัย</h2>
+        <p style="font-size: 18px; margin: 20px 0;">คุณสะสมเหรียญได้ทั้งหมด:<br><b style="font-size: 32px; color: #f19066;" id="final-coins">0</b> 🪙</p>
+        <button class="btn btn-green" onclick="toLevelSelect()">เล่นอีกครั้ง</button>
+        <button class="btn btn-blue" onclick="goHome()">กลับหน้าหลัก</button>
+    </div>
+</div>
+
+<script>
+    let currentMode = 1; // 1, 2, 3
+    let currentDiff = 1; // 1:ง่าย, 2:ปานกลาง, 3:ยาก
+    let score = 0;
+    let timer = 0;
+    let timerInterval = null;
+    let isPlaying = false;
+
+    // ฐานข้อมูลคำศัพท์แยกตามโหมดและความยาก
+    const dbGame1 = {
+        1: [ // ง่าย: ผลไม้ / สัตว์
+            { cat: "ผลไม้", correct: ["ส้ม", "กล้วย", "มะม่วง"], wrong: ["แมว", "โต๊ะ", "ดินสอ"] },
+            { cat: "สัตว์", correct: ["สุนัข", "แมว", "ช้าง"], wrong: ["แอปเปิ้ล", "แตงโม", "มะละกอ"] }
+        ],
+        2: [ // ปานกลาง: คำเป็น / คำตาย
+            { cat: "คำเป็น (แม่ ก กา ยาว / นมยวง)", correct: ["มา", "กิน", "เรียน"], wrong: ["นก", "กบ", "วัด"] },
+            { cat: "คำตาย (แม่ กก กด กบ / เสียงสั้น)", correct: ["รัก", "บท", "ธูป"], wrong: ["มา", "ดู", "ปู"] }
+        ],
+        3: [ // ยาก: คำพ้องรูป / พ้องเสียง
+            { cat: "คำว่า 'ขัน' (หมายถึงภาชนะตักน้ำ)", correct: ["ขันน้ำ", "ตักน้ำ"], wrong: ["ไก่ขัน", "หัวเราะขัน"] },
+            { cat: "คำว่า 'สระ' (หมายถึงแหล่งน้ำ)", correct: ["สระว่ายน้ำ", "สระน้ำ"], wrong: ["สระผม", "สระอักษร"] }
+        ]
+    };
+
+    const dbGame2 = {
+        1: [ // ง่าย: เสียงวรรณยุกต์
+            { q: "คำว่า 'ปา' มีเสียงวรรณยุกต์ใด?", sub: "สามัญ เอก โท ตรี จัตวา", ans: "สามัญ", choices: ["สามัญ", "เอก", "โท", "ตรี"] },
+            { q: "คำว่า 'ป่า' มีเสียงวรรณยุกต์ใด?", sub: "สามัญ เอก โท ตรี จัตวา", ans: "เอก", choices: ["สามัญ", "เอก", "โท", "จัตวา"] }
+        ],
+        2: [ // ปานกลาง: อักษรสูง กลาง ต่ำ
+            { q: "'ก จ ด ต บ ป อ' คืออักษรหมู่ใด?", sub: "พิจารณาจากพยัญชนะต้น", ans: "อักษรกลาง", choices: ["อักษรสูง", "อักษรกลาง", "อักษรต่ำ", "อักษรคู่"] },
+            { q: "'ข ฉ ถ ผ ฝ ส ห' คืออักษรหมู่ใด?", sub: "พิจารณาจากพยัญชนะต้น", ans: "อักษรสูง", choices: ["อักษรสูง", "อักษรกลาง", "อักษรต่ำ", "คำเป็น"] }
+        ],
+        3: [ // ยาก: มาตราตัวสะกดไม่ตรงแม่
+            { q: "คำว่า 'ประเสริฐ' สะกดด้วยมาตราใด?", sub: "ดูที่พยัญชนะท้ายคำ", ans: "แม่กด", choices: ["แม่กน", "แม่กด", "แม่กบ", "แม่กง"] },
+            { q: "คำว่า 'กุญชร' สะกดด้วยมาตราใด?", sub: "ดูที่พยัญชนะท้ายคำ", ans: "แม่กน", choices: ["แม่กม", "แม่กน", "แม่กก", "แม่กด"] }
+        ]
+    };
+
+    const dbGame3 = {
+        1: [ // ง่าย: คำราชาศัพท์พื้นฐาน
+            { q: "คำราชาศัพท์ของ 'กิน' คืออะไร?", ans: "เสวย", choices: ["เสวย", "บรรทม", "ประชำ", "ทรงพระสำราญ"] },
+            { q: "คำราชาศัพท์ของ 'นอน' คืออะไร?", ans: "บรรทม", choices: ["เสวย", "บรรทม", "สรงน้ำ", "เสด็จ"] }
+        ],
+        2: [ // ปานกลาง: คำสุภาพ / อวัยวะ
+            { q: "คำราชาศัพท์ของ 'มือ' คืออะไร?", ans: "พระหัตถ์", choices: ["พระบาท", "พระโอษฐ์", "พระหัตถ์", "พระศอ"] },
+            { q: "คำราชาศัพท์ของ 'หู' คืออะไร?", ans: "พระกรรณ", choices: ["พระเนตร", "พระกรรณ", "พระนาสิก", "พระเกศา"] }
+        ],
+        3: [ // ยาก: ราชาศัพท์หมวดเครือญาติ / กริยาขั้นสูง
+            { q: "คำราชาศัพท์ของ 'พ่อ (พระราชา)' คืออะไร?", ans: "พระราชบิดา", choices: ["พระราชบิดา", "พระราชมารดา", "พระราชสวามี", "พระราชโอรส"] },
+            { q: "คำราชาศัพท์ของ 'อาบน้ำ' คืออะไร?", ans: "สรงน้ำ", choices: ["เสวย", "สรงน้ำ", "บรรทม", "ทรงพระดำเนิน"] }
+        ]
+    };
+
+    function openLevelSelect(mode) {
+        currentMode = mode;
+        document.getElementById("screen-home").classList.add("hidden");
+        document.getElementById("screen-level").classList.remove("hidden");
+        const titles = ["", "วิ่งเก็บคำตรงหมวด", "ศึกวรรณยุกต์ปราบมอน", "นักสืบคำราชาศัพท์"];
+        document.getElementById("mode-title").textContent = titles[mode];
+    }
+
+    function goHome() {
+        stopGame();
+        document.getElementById("screen-level").classList.add("hidden");
+        document.getElementById("screen-gameover").classList.add("hidden");
+        document.getElementById("screen-home").classList.remove("hidden");
+    }
+
+    function toLevelSelect() {
+        stopGame();
+        document.getElementById("game-1").classList.add("hidden");
+        document.getElementById("game-2").classList.add("hidden");
+        document.getElementById("game-3").classList.add("hidden");
+        document.getElementById("screen-gameover").classList.add("hidden");
+        document.getElementById("screen-level").classList.remove("hidden");
+    }
+
+    function startGame(diff) {
+        currentDiff = diff;
+        score = 0;
+        document.getElementById("screen-level").classList.add("hidden");
+        
+        if (currentMode === 1) {
+            document.getElementById("game-1").classList.remove("hidden");
+            startG1();
+        } else if (currentMode === 2) {
+            document.getElementById("game-2").classList.remove("hidden");
+            startG2();
+        } else if (currentMode === 3) {
+            document.getElementById("game-3").classList.remove("hidden");
+            startG3();
+        }
+    }
+
+    function stopGame() {
+        clearInterval(timerInterval);
+        isPlaying = false;
+    }
+
+    function gameOver() {
+        stopGame();
+        document.getElementById("game-1").classList.add("hidden");
+        document.getElementById("game-2").classList.add("hidden");
+        document.getElementById("game-3").classList.add("hidden");
+        document.getElementById("screen-gameover").classList.remove("hidden");
+        document.getElementById("final-coins").textContent = score;
+    }
+
+    // --- ระบบเกมที่ 1 ---
+    let g1DataList = [];
+    let g1CurrentSet = null;
+    function startG1() {
+        isPlaying = true;
+        timer = 25 + (currentDiff * 5);
+        document.getElementById("g1-timer").textContent = timer;
+        g1DataList = dbGame1[currentDiff];
+        nextG1Round();
+
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            timer--;
+            document.getElementById("g1-timer").textContent = timer;
+            if (timer <= 0) gameOver();
+        }, 1000);
+    }
+
+    function nextG1Round() {
+        if (!isPlaying) return;
+        g1CurrentSet = g1DataList[Math.floor(Math.random() * g1DataList.length)];
+        document.getElementById("g1-category").textContent = "หมวดที่ต้องหา: " + g1CurrentSet.cat;
+
+        // สุ่มเลือกว่าจะเอาคำถูกหรือผิดมาโชว์
+        let isCorrectTurn = Math.random() >= 0.5;
+        let targetWord = "";
+        let currentIsCorrect = false;
+
+        if (isCorrectTurn) {
+            targetWord = g1CurrentSet.correct[Math.floor(Math.random() * g1CurrentSet.correct.length)];
+            currentIsCorrect = true;
+        } else {
+            targetWord = g1CurrentSet.wrong[Math.floor(Math.random() * g1CurrentSet.wrong.length)];
+            currentIsCorrect = false;
+        }
+
+        const itemEl = document.getElementById("g1-item");
+        itemEl.textContent = targetWord;
+        itemEl.style.right = "-50px";
+
+        // แอนิเมชันวิ่งเข้าหา
+        let pos = -50;
+        let anim = setInterval(() => {
+            if (!isPlaying) { clearInterval(anim); return; }
+            pos += 4;
+            itemEl.style.right = pos + "px";
+            if (pos > 250) { // หลุดจอถือว่าพลาด
+                clearInterval(anim);
+                nextG1Round();
+            }
+        }, 50);
+
+        // สร้างปุ่มกด ใช่ /ไม่ใช่
+        const choicesDiv = document.getElementById("g1-choices");
+        choicesDiv.innerHTML = `
+            <button class="btn btn-green" onclick="answerG1(true, ${currentIsCorrect}, '${anim}')">✔️ ใช่ (ตรงหมวด)</button>
+            <button class="btn" onclick="answerG1(false, ${currentIsCorrect}, '${anim}')">❌ ไม่ใช่</button>
+        `;
+    }
+
+    function answerG1(userAns, actualAns, anim) {
+        if (userAns === actualAns) {
+            score += 10;
+            document.getElementById("g1-score").textContent = score;
+        } else {
+            score = Math.max(0, score - 5);
+            document.getElementById("g1-score").textContent = score;
+        }
+        nextG1Round();
+    }
+
+    // --- ระบบเกมที่ 2 ---
+    let g2List = [];
+    function startG2() {
+        isPlaying = true;
+        timer = 20 + (currentDiff * 5);
+        document.getElementById("g2-timer").textContent = timer;
+        g2List = [...dbGame2[currentDiff]];
+        nextG2Round();
+
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            timer--;
+            document.getElementById("g2-timer").textContent = timer;
+            if (timer <= 0) gameOver();
+        }, 1000);
+    }
+
+    function nextG2Round() {
+        if (!isPlaying) return;
+        if (g2List.length === 0) g2List = [...dbGame2[currentDiff]];
+        let qObj = g2List.pop();
+
+        document.getElementById("g2-word").textContent = qObj.q;
+        document.getElementById("g2-sub").textContent = qObj.sub;
+
+        let shuffledChoices = [...qObj.choices].sort(() => Math.random() - 0.5);
+        const choicesDiv = document.getElementById("g2-choices");
+        choicesDiv.innerHTML = "";
+
+        shuffledChoices.forEach(choice => {
+            let btn = document.createElement("button");
+            btn.className = "btn btn-blue";
+            btn.textContent = choice;
+            btn.onclick = () => {
+                if (choice === qObj.ans) {
+                    score += 15;
+                    document.getElementById("g2-score").textContent = score;
+                } else {
+                    score = Math.max(0, score - 5);
+                    document.getElementById("g2-score").textContent = score;
+                }
+                nextG2Round();
+            };
+            choicesDiv.appendChild(btn);
+        });
+    }
+
+    // --- ระบบเกมที่ 3 ---
+    let g3List = [];
+    function startG3() {
+        isPlaying = true;
+        timer = 20 + (currentDiff * 5);
+        document.getElementById("g3-timer").textContent = timer;
+        g3List = [...dbGame3[currentDiff]];
+        nextG3Round();
+
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            timer--;
+            document.getElementById("g3-timer").textContent = timer;
+            if (timer <= 0) gameOver();
+        }, 1000);
+    }
+
+    function nextG3Round() {
+        if (!isPlaying) return;
+        if (g3List.length === 0) g3List = [...dbGame3[currentDiff]];
+        let qObj = g3List.pop();
+
+        document.getElementById("g3-question").textContent = qObj.q;
+
+        let shuffledChoices = [...qObj.choices].sort(() => Math.random() - 0.5);
+        const choicesDiv = document.getElementById("g3-choices");
+        choicesDiv.innerHTML = "";
+
+        shuffledChoices.forEach(choice => {
+            let btn = document.createElement("button");
+            btn.className = "btn btn-warning";
+            btn.textContent = choice;
+            btn.onclick = () => {
+                if (choice === qObj.ans) {
+                    score += 20;
+                    document.getElementById("g3-score").textContent = score;
+                } else {
+                    score = Math.max(0, score - 5);
+                    document.getElementById("g3-score").textContent = score;
+                }
+                nextG3Round();
+            };
+            choicesDiv.appendChild(btn);
+        });
+    }
+</script>
+
+</body>
+</html>

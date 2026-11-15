@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ศูนย์รวมความสนุก - Arcade Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Prompt', sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #1f4068, #162447);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        header h1 {
+            font-size: 2.5rem;
+            color: #e43f5a;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        header p {
+            font-size: 1.1rem;
+            color: #cbd3d9;
+        }
+        .menu-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 1000px;
+        }
+        .menu-card {
+            background: #0f3057;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            text-decoration: none;
+            color: #fff;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease, background 0.3s ease;
+            border: 2px solid transparent;
+        }
+        .menu-card:hover {
+            transform: translateY(-8px);
+            background: #1b4b75;
+            border-color: #e43f5a;
+        }
+        .menu-card .icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+        .menu-card h2 {
+            font-size: 1.4rem;
+            margin-bottom: 10px;
+        }
+        .menu-card p {
+            font-size: 0.9rem;
+            color: #a0aec0;
+        }
+        footer {
+            margin-top: 50px;
+            font-size: 0.85rem;
+            color: #718096;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🎮 Arcade Game Hub</h1>
+        <p>เลือกเกมฝึกทักษะและความสนุกที่คุณต้องการเล่นได้เลย!</p>
+    </header>
+
+    <div class="menu-container">
+        <!-- เกมสมองกล -->
+        <a href="coding_game.html" class="menu-card">
+            <div class="icon">🤖</div>
+            <h2>เกมสมองกล (Coding)</h2>
+            <p>ฝึกทักษะการคิดเชิงคำนวณและวางแผนคำสั่ง</p>
+        </a>
+
+        <!-- เกมคณิตศาสตร์ -->
+        <a href="math_game.html" class="menu-card">
+            <div class="icon">🔢</div>
+            <h2>เกมคณิตคิดเร็ว</h2>
+            <p>ฝึกทักษะการคำนวณ บวก ลบ คูณ หาร</p>
+        </a>
+
+        <!-- เกมวิทยาศาสตร์ -->
+        <a href="science_game_pro.html" class="menu-card">
+            <div class="icon">🔬</div>
+            <h2>เกมวิทยาศาสตร์</h2>
+            <p>ผจญภัยไปกับโลกวิทยาศาสตร์สุดสนุก</p>
+        </a>
+
+        <!-- เกมภาษาอังกฤษ -->
+        <a href="eng.html" class="menu-card">
+            <div class="icon">abc</div>
+            <h2>เกมภาษาอังกฤษ</h2>
+            <p>ฝึกคำศัพท์และทักษะภาษาอังกฤษ</p>
+        </a>
+
+        <!-- เกมภาษาไทย -->
+        <a href="thai_arcade.html" class="menu-card">
+            <div class="icon">🇹🇭</div>
+            <h2>อาร์เคดภาษาไทย</h2>
+            <p>สนุกกับเกมฝึกพิมพ์และคำศัพท์ไทย</p>
+        </a>
+        <a href="Test.html" class="menu-card">
+
+    <div class="icon">🧪</div>
+
+    <h2>เกมทดสอบ</h2>
+
+    <p>เข้าเล่นเกม Test</p>
+
+</a>
+    </div>
+
+    <footer>
+        &copy; 2026 Game Aladin Project. All rights Reserved.
+    </footer>
+
+</body>
+</html>
