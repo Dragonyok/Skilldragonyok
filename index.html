@@ -82,7 +82,7 @@
     <div class="modal">
       <button class="modal-close" id="btnCloseModal" aria-label="ปิด">✕</button>
       <h2>เข้าสู่ระบบ</h2>
-      <p class="muted">เข้าสู่ระบบเพื่อเก็บคะแนนสะสมของคุณ</p>
+      <p class="muted" id="authModalSub">เข้าสู่ระบบเพื่อเก็บคะแนนสะสมของคุณ</p>
       <button class="btn btn-google" id="btnGoogle">🔵 ดำเนินการต่อด้วย Google</button>
       <button class="btn btn-anon" id="btnAnon">👤 เล่นแบบไม่ระบุตัวตน (ตั้งชื่อ)</button>
       <div class="divider"><span>หรือใช้อีเมล</span></div>
@@ -103,6 +103,7 @@
       <p class="muted">ตั้งชื่อของคุณเพื่อเริ่มเก็บคะแนน</p>
       <input type="text" id="playerNameInput" placeholder="ใส่ชื่อเล่นของคุณ..." maxlength="20" autocomplete="off">
       <button class="btn btn-primary" id="btnSaveName" style="width:100%;">เริ่มเล่นเลย!</button>
+      <p class="msg" id="nameMsg"></p>
     </div>
   </div>
 
@@ -167,6 +168,22 @@
       },
 
       signInWithGoogle() { return auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); },
+      
+      // ⭐ ฟังก์ชันผูกบัญชี (Link) ไม่ให้คะแนนหาย
+      async linkGoogle() {
+        const user = auth.currentUser;
+        if (!user) throw new Error('ต้องเข้าสู่ระบบก่อน');
+        const provider = new firebase.auth.GoogleAuthProvider();
+        const cred = await user.linkWithPopup(provider);
+        await db.collection('users').doc(user.uid).update({
+          displayName: cred.user.displayName || '',
+          email: cred.user.email || '',
+          photoURL: cred.user.photoURL || '',
+          isAnonymous: false
+        });
+        return cred;
+      },
+
       signInAnonymously() { return auth.signInAnonymously(); },
       signInWithEmail(e, p) { return auth.signInWithEmailAndPassword(e, p); },
       signUpWithEmail(e, p) { return auth.createUserWithEmailAndPassword(e, p); },
@@ -198,26 +215,40 @@
     const authArea = document.getElementById('authArea');
     const authModal = document.getElementById('authModal');
     const nameModal = document.getElementById('nameModal');
-    const msgEl = document.getElementById('authMsg');
+    
+    const authMsg = document.getElementById('authMsg');
+    const nameMsg = document.getElementById('nameMsg');
+    const authModalSub = document.getElementById('authModalSub');
     const nameInput = document.getElementById('playerNameInput');
 
-    function setMsg(text, type) { msgEl.textContent = text || ''; msgEl.className = 'msg ' + (type || ''); }
+    function setMsg(el, text, type) { el.textContent = text || ''; el.className = 'msg ' + (type || ''); }
     
-    function openAuthModal() { authModal.classList.add('open'); setMsg(''); }
-    function closeAuthModal() { authModal.classList.remove('open'); setMsg(''); }
+    function openAuthModal(isUpgrade = false) { 
+      authModal.classList.add('open'); 
+      setMsg(authMsg, '');
+      if (isUpgrade) {
+        authModalSub.textContent = "ผูกบัญชีเพื่อรักษาคะแนนและเล่นข้ามเครื่อง";
+        document.getElementById('btnAnon').style.display = 'none'; // ซ่อนปุ่ม Anonymous ถ้าจะอัปเกรด
+      } else {
+        authModalSub.textContent = "เข้าสู่ระบบเพื่อเก็บคะแนนสะสมของคุณ";
+        document.getElementById('btnAnon').style.display = 'block';
+      }
+    }
+    function closeAuthModal() { authModal.classList.remove('open'); setMsg(authMsg, ''); }
 
-    document.getElementById('btnLogin').onclick = openAuthModal;
+    document.getElementById('btnLogin').onclick = () => openAuthModal(false);
     document.getElementById('btnCloseModal').onclick = closeAuthModal;
 
-    async function withBusy(btn, fn) {
+    async function withBusy(btn, msgEl, fn) {
       const old = btn.textContent; btn.disabled = true; btn.textContent = 'รอสักครู่...';
-      try { await fn(); } catch (err) { setMsg(err.message, 'error'); } 
+      try { await fn(); } 
+      catch (err) { setMsg(msgEl, err.message || 'เกิดข้อผิดพลาด', 'error'); } 
       finally { btn.disabled = false; btn.textContent = old; }
     }
 
     function renderSignedOut() {
       authArea.innerHTML = '<button class="btn btn-ghost" id="btnLogin">เข้าสู่ระบบ</button>';
-      document.getElementById('btnLogin').onclick = openAuthModal;
+      document.getElementById('btnLogin').onclick = () => openAuthModal(false);
       document.querySelectorAll('[data-score]').forEach(el => {
         el.classList.add('empty'); el.textContent = '🔒 เข้าสู่ระบบเพื่อเก็บคะแนน';
       });
@@ -228,7 +259,9 @@
       const total = profile.totalScore || 0;
       const initial = (name.trim().charAt(0) || '?').toUpperCase();
       
-      const actionBtn = user.isAnonymous ? '<button class="btn btn-ghost" id="btnUpgrade">ผูกบัญชี</button>' : '<button class="btn btn-ghost" id="btnLogout">ออก</button>';
+      const actionBtn = user.isAnonymous 
+        ? '<button class="btn btn-ghost" id="btnUpgrade">ผูกบัญชี</button>' 
+        : '<button class="btn btn-ghost" id="btnLogout">ออก</button>';
 
       authArea.innerHTML = `
         <div class="user-chip">
@@ -238,7 +271,7 @@
       `;
 
       if (document.getElementById('btnLogout')) document.getElementById('btnLogout').onclick = () => ArcadeScores.signOut();
-      if (document.getElementById('btnUpgrade')) document.getElementById('btnUpgrade').onclick = openAuthModal;
+      if (document.getElementById('btnUpgrade')) document.getElementById('btnUpgrade').onclick = () => openAuthModal(true);
 
       document.querySelectorAll('[data-score]').forEach(el => {
         const g = (profile.games || {})[el.dataset.score];
@@ -250,6 +283,12 @@
           el.textContent = 'ยังไม่เคยเล่น — เริ่มเลย!';
         }
       });
+
+      // ⭐ ตรวจสอบว่าถ้าเป็น Anonymous และยังไม่มีชื่อ ให้เด้ง Modal ตั้งชื่อ
+      if (user.isAnonymous && !profile.displayName) {
+        nameModal.classList.add('open');
+        nameInput.focus();
+      }
     }
 
     // 5. เริ่มระบบ Auth
@@ -265,29 +304,32 @@
     /* ==========================================
        6. ปุ่มใน Modal
        ========================================== */
-    document.getElementById('btnGoogle').onclick = (e) => withBusy(e.currentTarget, async () => { 
-        await ArcadeScores.signInWithGoogle(); 
+    // ⭐ อัปเดตปุ่ม Google ให้เช็คว่าถ้าเป็น Anonymous ให้ "ผูกบัญชี" แทนการล็อกอินใหม่
+    document.getElementById('btnGoogle').onclick = (e) => withBusy(e.currentTarget, authMsg, async () => { 
+        if (auth.currentUser && auth.currentUser.isAnonymous) {
+            await ArcadeScores.linkGoogle();
+        } else {
+            await ArcadeScores.signInWithGoogle(); 
+        }
         closeAuthModal(); 
     });
     
-    document.getElementById('btnEmailLogin').onclick = (e) => withBusy(e.currentTarget, async () => { 
+    document.getElementById('btnEmailLogin').onclick = (e) => withBusy(e.currentTarget, authMsg, async () => { 
         await ArcadeScores.signInWithEmail(document.getElementById('email').value.trim(), document.getElementById('password').value); 
         closeAuthModal(); 
     });
     
-    document.getElementById('btnEmailSignup').onclick = (e) => withBusy(e.currentTarget, async () => { 
+    document.getElementById('btnEmailSignup').onclick = (e) => withBusy(e.currentTarget, authMsg, async () => { 
         await ArcadeScores.signUpWithEmail(document.getElementById('email').value.trim(), document.getElementById('password').value); 
         closeAuthModal(); 
     });
 
     // ⭐ ปุ่ม Anonymous: ซ่อน Modal Login แล้วโชว์ Modal ตั้งชื่อแทน
     document.getElementById('btnAnon').onclick = (e) => {
-        withBusy(e.currentTarget, async () => {
-            // 1. ล็อกอิน Anonymous
+        withBusy(e.currentTarget, authMsg, async () => {
             const cred = await ArcadeScores.signInAnonymously();
             await ArcadeScores.ensureUserDoc(cred.user);
             
-            // 2. ปิด Modal Login และเปิด Modal ตั้งชื่อ
             closeAuthModal();
             nameModal.classList.add('open');
             nameInput.value = "";
@@ -298,11 +340,12 @@
     // ⭐ ปุ่มบันทึกชื่อ
     document.getElementById('btnSaveName').onclick = async function(e) {
         const name = nameInput.value;
-        if (!name.trim()) return alert('กรุณาใส่ชื่อก่อนครับ');
+        if (!name.trim()) return setMsg(nameMsg, 'กรุณาใส่ชื่อก่อนครับ', 'error');
         
-        withBusy(e.currentTarget, async () => {
+        withBusy(e.currentTarget, nameMsg, async () => {
             await ArcadeScores.updateDisplayName(name);
             nameModal.classList.remove('open'); // ปิด Modal ตั้งชื่อ
+            setMsg(nameMsg, ''); // ล้างข้อความ
         });
     };
 
