@@ -1,119 +1,10 @@
-<!DOCTYPE html>
-<html lang="th">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ศูนย์รวมความสนุก - Arcade Hub</title>
-<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700&display=swap" rel="stylesheet">
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Prompt', sans-serif; }
-  body { background: linear-gradient(135deg, #1f4068, #162447); color: #fff; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
-  
-  .topbar { width: 100%; max-width: 1000px; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 28px; flex-wrap: wrap; }
-  .brand { font-weight: 700; color: #e43f5a; font-size: 1.05rem; }
-  .auth-area { display: flex; align-items: center; gap: 10px; }
-  .btn { font-family: inherit; font-size: .9rem; font-weight: 600; border: none; border-radius: 10px; padding: 10px 16px; cursor: pointer; color: #fff; transition: transform .2s ease, filter .2s ease, background .2s ease; }
-  .btn:hover { filter: brightness(1.12); transform: translateY(-1px); }
-  .btn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
-  .btn-primary { background: #e43f5a; }
-  .btn-ghost { background: transparent; border: 1.5px solid #e43f5a; color: #e43f5a; }
-  .btn-ghost:hover { background: rgba(228,63,90,.12); }
-  .btn-google { background: #fff; color: #333; width: 100%; margin-bottom: 10px; }
-  .btn-anon { background: #1b4b75; width: 100%; }
-
-  .user-chip { display: flex; align-items: center; gap: 10px; background: #0f3057; border: 1px solid #1b4b75; padding: 6px 14px 6px 6px; border-radius: 999px; }
-  .user-chip .avatar { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: #e43f5a; font-weight: 700; font-size: .95rem; }
-  .user-chip .name { font-size: .85rem; font-weight: 600; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .user-chip .total { font-size: .75rem; color: #f6c453; }
-
-  header { text-align: center; margin-bottom: 40px; }
-  header h1 { font-size: 2.5rem; color: #e43f5a; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,.3); }
-  header p { font-size: 1.1rem; color: #cbd3d9; }
-
-  .menu-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; width: 100%; max-width: 1000px; }
-  .menu-card { background: #0f3057; border-radius: 15px; padding: 25px; text-align: center; text-decoration: none; color: #fff; box-shadow: 0 8px 16px rgba(0,0,0,.3); transition: transform .3s ease, background .3s ease, border-color .3s ease; border: 2px solid transparent; display: flex; flex-direction: column; align-items: center; }
-  .menu-card:hover { transform: translateY(-8px); background: #1b4b75; border-color: #e43f5a; }
-  .menu-card .icon { font-size: 3rem; margin-bottom: 15px; line-height: 1; }
-  .menu-card h2 { font-size: 1.4rem; margin-bottom: 10px; }
-  .menu-card p { font-size: .9rem; color: #a0aec0; }
-  .score-line { margin-top: 16px; font-size: .78rem; color: #f6c453; background: rgba(246,196,83,.1); border: 1px dashed rgba(246,196,83,.45); border-radius: 8px; padding: 6px 10px; width: 100%; }
-  .score-line.empty { color: #718096; background: transparent; border-color: #2d3748; }
-
-  footer { margin-top: 50px; font-size: .85rem; color: #718096; }
-  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.7); display: none; align-items: center; justify-content: center; padding: 20px; z-index: 100; }
-  .modal-overlay.open { display: flex; }
-  .modal { background: #0f3057; border: 1px solid #1b4b75; border-radius: 16px; padding: 26px; width: 100%; max-width: 380px; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,.55); text-align: left; }
-  .modal h2 { font-size: 1.3rem; margin-bottom: 6px; }
-  .modal .muted { font-size: .85rem; color: #a0aec0; margin-bottom: 18px; }
-  .modal input { width: 100%; padding: 11px 14px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #1b4b75; background: #162447; color: #fff; font-family: inherit; font-size: .9rem; }
-  .modal input:focus { outline: none; border-color: #e43f5a; }
-  .modal .row { display: flex; gap: 10px; }
-  .modal .row .btn { flex: 1; }
-  .modal-close { position: absolute; top: 12px; right: 14px; background: none; border: none; color: #a0aec0; font-size: 1.1rem; cursor: pointer; }
-  .modal-close:hover { color: #fff; }
-  .divider { display: flex; align-items: center; gap: 10px; margin: 16px 0; color: #718096; font-size: .78rem; }
-  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #1b4b75; }
-  .msg { font-size: .82rem; margin-top: 10px; min-height: 18px; }
-  .msg.error { color: #fc8181; }
-</style>
-</head>
-<body>
-
-  <div class="topbar">
-    <div class="brand">🎮 Arcade Game Hub</div>
-    <div class="auth-area" id="authArea">
-      <button class="btn btn-ghost" id="btnLogin">เข้าสู่ระบบ</button>
-    </div>
-  </div>
-
-  <header>
-    <h1>🎮 Arcade Game Hub</h1>
-    <p>เลือกเกมฝึกทักษะและความสนุกที่คุณต้องการเล่นได้เลย!</p>
-  </header>
-
-  <div class="menu-container" id="menuContainer"></div>
-
-  <footer>&copy; 2026 Game Aladin Project. All rights Reserved.</footer>
-
-  <!-- Modal เข้าสู่ระบบ -->
-  <div class="modal-overlay" id="authModal">
-    <div class="modal">
-      <button class="modal-close" id="btnCloseModal" aria-label="ปิด">✕</button>
-      <h2>เข้าสู่ระบบ</h2>
-      <p class="muted">เข้าสู่ระบบเพื่อเก็บคะแนนสะสมของคุณ</p>
-      <button class="btn btn-google" id="btnGoogle">🔵 ดำเนินการต่อด้วย Google</button>
-      <button class="btn btn-anon" id="btnAnon">👤 เล่นแบบไม่ระบุตัวตน (ตั้งชื่อ)</button>
-      <div class="divider"><span>หรือใช้อีเมล</span></div>
-      <input type="email" id="email" placeholder="อีเมล" autocomplete="email">
-      <input type="password" id="password" placeholder="รหัสผ่าน (6 ตัวขึ้นไป)" autocomplete="current-password">
-      <div class="row">
-        <button class="btn btn-primary" id="btnEmailLogin">เข้าสู่ระบบ</button>
-        <button class="btn btn-ghost" id="btnEmailSignup">สมัครใหม่</button>
-      </div>
-      <p class="msg" id="authMsg"></p>
-    </div>
-  </div>
-
-  <!-- Modal ตั้งชื่อผู้เล่น (ใหม่) -->
-  <div class="modal-overlay" id="nameModal">
-    <div class="modal">
-      <h2>👋 ยินดีต้อนรับ!</h2>
-      <p class="muted">ตั้งชื่อของคุณเพื่อเริ่มเก็บคะแนน</p>
-      <input type="text" id="playerNameInput" placeholder="ใส่ชื่อเล่นของคุณ..." maxlength="20" autocomplete="off">
-      <button class="btn btn-primary" id="btnSaveName" style="width:100%;">เริ่มเล่นเลย!</button>
-    </div>
-  </div>
-
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-
   <script>
   (function () {
     'use strict';
 
-    // 1. ตั้งค่า Firebase
+    /* ==========================================
+       1. ตั้งค่า Firebase
+       ========================================== */
     const firebaseConfig = {
       apiKey: "AIzaSyAGu__RjEy0WRI7hYDdKfai9vio8GqWoqw",
       authDomain: "skilldragonyok.firebaseapp.com",
@@ -127,7 +18,9 @@
     const db = firebase.firestore();
     const TS = () => firebase.firestore.FieldValue.serverTimestamp();
 
-    // 2. ฟังก์ชันฐานข้อมูล
+    /* ==========================================
+       2. ฟังก์ชันฐานข้อมูล
+       ========================================== */
     const ArcadeScores = {
       currentUser() { return auth.currentUser; },
       onAuth(cb) { return auth.onAuthStateChanged(cb); },
@@ -138,7 +31,7 @@
         const snap = await ref.get();
         if (!snap.exists) {
           await ref.set({
-            uid: user.uid, displayName: user.displayName || (user.isAnonymous ? '' : ''),
+            uid: user.uid, displayName: user.displayName || '',
             email: user.email || '', isAnonymous: user.isAnonymous,
             totalScore: 0, games: {}, createdAt: TS(), lastSeen: TS()
           });
@@ -167,7 +60,9 @@
       signOut() { return auth.signOut(); }
     };
 
-    // 3. วาดเมนู
+    /* ==========================================
+       3. วาดเมนู
+       ========================================== */
     const GAME_LIST = [
       { id:'coding',  file:'coding_game.html',      icon:'🤖', title:'เกมสมองกล (Coding)', desc:'ฝึกทักษะการคิดเชิงคำนวณและวางแผนคำสั่ง' },
       { id:'math',    file:'math_game.html',        icon:'🔢', title:'เกมคณิตคิดเร็ว',     desc:'ฝึกทักษะการคำนวณ บวก ลบ คูณ หาร' },
@@ -184,10 +79,11 @@
        </a>`
     ).join('');
 
-    // 4. ระบบ UI
+    /* ==========================================
+       4. ระบบ UI
+       ========================================== */
     const authArea = document.getElementById('authArea');
     const authModal = document.getElementById('authModal');
-    const nameModal = document.getElementById('nameModal');
     const msgEl = document.getElementById('authMsg');
 
     function setMsg(text, type) { msgEl.textContent = text || ''; msgEl.className = 'msg ' + (type || ''); }
@@ -238,24 +134,7 @@
           el.textContent = 'ยังไม่เคยเล่น — เริ่มเลย!';
         }
       });
-
-      // ถ้าเป็น Anonymous และยังไม่มีชื่อ ให้เด้ง Modal ใส่ชื่อ
-      if (user.isAnonymous && !profile.displayName) {
-        nameModal.classList.add('open');
-      } else {
-        nameModal.classList.remove('open');
-      }
     }
-
-    // บันทึกชื่อ
-    document.getElementById('btnSaveName').onclick = async function(e) {
-      const name = document.getElementById('playerNameInput').value;
-      if (!name.trim()) return alert('กรุณาใส่ชื่อก่อนครับ');
-      withBusy(e.currentTarget, async () => {
-        await ArcadeScores.updateDisplayName(name);
-        nameModal.classList.remove('open');
-      });
-    };
 
     // 5. เริ่มระบบ Auth
     let unsubProfile = null;
@@ -266,13 +145,38 @@
       unsubProfile = ArcadeScores.watchProfile(user.uid, profile => renderSignedIn(user, profile));
     });
 
-    // ปุ่มใน Modal เข้าสู่ระบบ
-    document.getElementById('btnGoogle').onclick = (e) => withBusy(e.currentTarget, async () => { await ArcadeScores.signInWithGoogle(); closeAuthModal(); });
-    document.getElementById('btnAnon').onclick = (e) => withBusy(e.currentTarget, async () => { await ArcadeScores.signInAnonymously(); closeAuthModal(); });
-    document.getElementById('btnEmailLogin').onclick = (e) => withBusy(e.currentTarget, async () => { await ArcadeScores.signInWithEmail(document.getElementById('email').value.trim(), document.getElementById('password').value); closeAuthModal(); });
-    document.getElementById('btnEmailSignup').onclick = (e) => withBusy(e.currentTarget, async () => { await ArcadeScores.signUpWithEmail(document.getElementById('email').value.trim(), document.getElementById('password').value); closeAuthModal(); });
+    // 6. ปุ่มใน Modal
+    document.getElementById('btnGoogle').onclick = (e) => withBusy(e.currentTarget, async () => { 
+        await ArcadeScores.signInWithGoogle(); 
+        closeAuthModal(); 
+    });
+    
+    document.getElementById('btnEmailLogin').onclick = (e) => withBusy(e.currentTarget, async () => { 
+        await ArcadeScores.signInWithEmail(document.getElementById('email').value.trim(), document.getElementById('password').value); 
+        closeAuthModal(); 
+    });
+    
+    document.getElementById('btnEmailSignup').onclick = (e) => withBusy(e.currentTarget, async () => { 
+        await ArcadeScores.signUpWithEmail(document.getElementById('email').value.trim(), document.getElementById('password').value); 
+        closeAuthModal(); 
+    });
+
+    // ⭐ ปุ่ม Anonymous (แก้ไขใหม่: เด้ง Pop-up ถามชื่อทันที)
+    document.getElementById('btnAnon').onclick = (e) => {
+        // ถามชื่อก่อนเลย
+        const name = prompt("👋 ยินดีต้อนรับ! กรุณาใส่ชื่อเล่นของคุณ (ไม่เกิน 20 ตัวอักษร):");
+        if (name === null) return; // ถ้าผู้ใช้กดยกเลิก
+        const cleanName = name.trim();
+        if (!cleanName) return alert("กรุณาใส่ชื่อด้วยครับ");
+
+        // ถ้าใส่ชื่อแล้ว ค่อยล็อกอินและบันทึกชื่อ
+        withBusy(e.currentTarget, async () => {
+            const cred = await ArcadeScores.signInAnonymously();
+            await ArcadeScores.ensureUserDoc(cred.user);
+            await ArcadeScores.updateDisplayName(cleanName);
+            closeAuthModal();
+        });
+    };
 
   })();
   </script>
-</body>
-</html>
