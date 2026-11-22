@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ภารกิจหุ่นยนต์ตามล่าเหรียญ</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: #102846;
+      color: #f5f8ff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 24px 16px 40px;
+      background: linear-gradient(150deg, #203d63, #102846 70%);
+    }
+
+    button, a { font: inherit; }
+
+    .page {
+      width: min(850px, 100%);
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .back {
+      color: #ff5369;
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .score-pill {
+      padding: 9px 14px;
+      border: 1px solid #345879;
+      border-radius: 999px;
+      color: #ffd15c;
+      font-weight: 700;
+    }
+
+    h1 {
+      margin: 10px 0 6px;
+      text-align: center;
+      color: #ff5369;
+      font-size: clamp(26px, 6vw, 42px);
+    }
+
+    .subtitle {
+      margin: 0 0 22px;
+      text-align: center;
+      color: #c8d7ea;
+    }
+
+    .panel {
+      padding: 18px;
+      border: 1px solid #274b70;
+      border-radius: 20px;
+      background: #143355;
+      box-shadow: 0 12px 28px #07182d55;
+    }
+
+    .game-info {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .badge {
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: #203f61;
+      color: #eaf2ff;
+      font-weight: 700;
+    }
+
+    #message {
+      min-height: 28px;
+      margin: 8px 0 14px;
+      text-align: center;
+      color: #ffd15c;
+      font-weight: 700;
+    }
+
+    #board {
+      display: grid;
+      width: min(100%, 500px);
+      margin: 0 auto;
+      gap: 4px;
+      touch-action: manipulation;
+      user-select: none;
+    }
+
+    .tile {
+      display: grid;
+      aspect-ratio: 1;
+      place-items: center;
+      border-radius: 8px;
+      background: #d8e8ef;
+      color: #102846;
+      font-size: clamp(17px, 5vw, 30px);
+      line-height: 1;
+    }
+
+    .tile.wall {
+      background: #354c65;
+      box-shadow: inset 0 -4px 0 #23384e;
+    }
+
+    .tile.path { background: #cce5e7; }
+    .tile.exit { background: #ffd15c; }
+    .tile.robot { background: #9bd8ff; }
+
+    .actions {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .action-button {
+      border: 0;
+      border-radius: 12px;
+      padding: 11px 16px;
+      background: #ff5369;
+      color: white;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .action-button.secondary {
+      border: 1px solid #52708e;
+      background: #203f61;
+    }
+
+    .action-button:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(3, 58px);
+      grid-template-rows: repeat(2, 52px);
+      justify-content: center;
+      gap: 7px;
+      margin: 18px auto 0;
+    }
+
+    .control {
+      border: 1px solid #6382a2;
+      border-radius: 12px;
+      background: #203f61;
+      color: white;
+      font-size: 22px;
+      font-weight: 800;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .control[data-dir="up"] { grid-column: 2; grid-row: 1; }
+    .control[data-dir="left"] { grid-column: 1; grid-row: 2; }
+    .control[data-dir="down"] { grid-column: 2; grid-row: 2; }
+    .control[data-dir="right"] { grid-column: 3; grid-row: 2; }
+
+    .help {
+      margin: 18px auto 0;
+      max-width: 600px;
+      color: #c8d7ea;
+      line-height: 1.7;
+      text-align: center;
+    }
+
+    @media (max-width: 480px) {
+      body { padding: 16px 10px 28px; }
+      .panel { padding: 12px 8px; }
+      #board { gap: 3px; }
+      .tile { border-radius: 5px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <a class="back" href="index.html">← กลับหน้ารวมเกม</a>
+      <div class="score-pill">⭐ คะแนน <span id="score">0</span></div>
+    </header>
+
+    <h1>🤖 ภารกิจหุ่นยนต์ตามล่าเหรียญ</h1>
+    <p class="subtitle">เก็บเหรียญให้ครบ แล้วพาหุ่นยนต์ไปที่ประตูทางออก!</p>
+
+    <section class="panel" aria-label="เกมเขาวงกต">
+      <div class="game-info">
+        <span class="badge" id="levelLabel">ด่าน 1</span>
+        <span class="badge">🪙 เหรียญ <span id="coinCount">0/0</span></span>
+        <span class="badge">👣 ก้าว <span id="steps">0</span></span>
+      </div>
+
+      <div id="message" role="status">ใช้ปุ่มลูกศร หรือปุ่มบนหน้าจอเพื่อเดิน</div>
+      <div id="board" aria-label="กระดานเขาวงกต"></div>
+
+      <div class="actions">
+        <button class="action-button secondary" id="restartButton">เริ่มด่านใหม่</button>
+        <button class="action-button" id="nextButton" disabled>ด่านถัดไป</button>
+      </div>
+
+      <div class="controls" aria-label="ปุ่มบังคับทิศทาง">
+        <button class="control" data-dir="up" aria-label="ขึ้น">↑</button>
+        <button class="control" data-dir="left" aria-label="ซ้าย">←</button>
+        <button class="control" data-dir="down" aria-label="ลง">↓</button>
+        <button class="control" data-dir="right" aria-label="ขวา">→</button>
+      </div>
+
+      <p class="help">
+        คอมพิวเตอร์: ใช้ปุ่มลูกศรหรือ W A S D<br>
+        มือถือ: แตะปุ่มลูกศรบนหน้าจอ<br>
+        เก็บเหรียญให้ครบก่อน จึงจะออกจากด่านได้
+      </p>
+    </section>
+  </main>
+
+  <script>
+    const levels = [
+      {
+        name: "ด่าน 1: ฝึกขับหุ่นยนต์",
+        par: 16,
+        map: [
+          "#######",
+          "#S..C.#",
+          "#.#.#.#",
+          "#C....#",
+          "###.#.#",
+          "#..C.E#",
+          "#######"
+        ]
+      },
+      {
+        name: "ด่าน 2: ทางเดินคดเคี้ยว",
+        par: 22,
+        map: [
+          "########",
+          "#S..#..#",
+          "#.#.#C.#",
+          "#.#....#",
+          "#C.##.##",
+          "#...#..#",
+          "##..C.E#",
+          "########"
+        ]
+      },
+      {
+        name: "ด่าน 3: ห้องทดลองลับ",
+        par: 25,
+        map: [
+          "#########",
+          "#S..#...#",
+          "#.#.#.#C#",
+          "#.#.....#",
+          "#C..#...#",
+          "###.###.#",
+          "#...C...#",
+          "#.#.#.#E#",
+          "#########"
+        ]
+      },
+      {
+        name: "ด่าน 4: สะพานพลังงาน",
+        par: 24,
+        map: [
+          "########",
+          "#S...C.#",
+          "#.#.##.#",
+          "#.#....#",
+          "#C..##.#",
+          "###....#",
+          "#...C.E#",
+          "########"
+        ]
+      },
+      {
+        name: "ด่าน 5: ภารกิจสุดท้าย",
+        par: 28,
+        map: [
+          "#########",
+          "#S..#...#",
+          "#.#.#.#C#",
+          "#.#.....#",
+          "#C..#...#",
+          "###.###.#",
+          "#...C...#",
+          "#.#.#.#E#",
+          "#########"
+        ]
+      }
+    ];
+
+    const saved = JSON.parse(localStorage.getItem("robotMazeSave") || "{}");
+    let totalScore = Number(saved.score) || 0;
+    let levelIndex = 0;
+    let player = { row: 0, col: 0 };
+    let exit = { row: 0, col: 0 };
+    let walls = new Set();
+    let coins = new Set();
+    let initialCoinCount = 0;
+    let steps = 0;
+    let won = false;
+
+    const board = document.getElementById("board");
+    const message = document.getElementById("message");
+    const nextButton = document.getElementById("nextButton");
+
+    function saveScore() {
+      localStorage.setItem("robotMazeSave", JSON.stringify({ score: totalScore }));
+      document.getElementById("score").textContent = totalScore;
+    }
+
+    function key(row, col) {
+      return `${row},${col}`;
+    }
+
+    function loadLevel() {
+      const level = levels[levelIndex];
+      walls = new Set();
+      coins = new Set();
+      steps = 0;
+      won = false;
+      nextButton.disabled = true;
+
+      level.map.forEach((line, row) => {
+        [...line].forEach((cell, col) => {
+          if (cell === "S") player = { row, col };
+          if (cell === "E") exit = { row, col };
+          if (cell === "#") walls.add(key(row, col));
+          if (cell === "C") coins.add(key(row, col));
+        });
+      });
+
+      initialCoinCount = coins.size;
+      document.getElementById("levelLabel").textContent = level.name;
+      message.textContent = "ใช้ปุ่มลูกศร หรือปุ่มบนหน้าจอเพื่อเดิน";
+      render();
+    }
+
+    function render() {
+      const map = levels[levelIndex].map;
+      const width = map[0].length;
+      board.style.gridTemplateColumns = `repeat(${width}, 1fr)`;
+      board.innerHTML = "";
+
+      map.forEach((line, row) => {
+        [...line].forEach((cell, col) => {
+          const tile = document.createElement("div");
+          tile.className = "tile";
+
+          if (cell === "#") {
+            tile.classList.add("wall");
+          } else {
+            tile.classList.add("path");
+          }
+
+          const spot = key(row, col);
+
+          if (row === exit.row && col === exit.col) {
+            tile.classList.add("exit");
+            tile.textContent = "🚪";
+          }
+
+          if (coins.has(spot)) tile.textContent = "🪙";
+
+          if (row === player.row && col === player.col) {
+            tile.classList.add("robot");
+            tile.textContent = "🤖";
+          }
+
+          board.appendChild(tile);
+        });
+      });
+
+      document.getElementById("coinCount").textContent =
+        `${initialCoinCount - coins.size}/${initialCoinCount}`;
+      document.getElementById("steps").textContent = steps;
+      saveScore();
+    }
+
+    function move(direction) {
+      if (won) return;
+
+      const delta = {
+        up: [-1, 0],
+        down: [1, 0],
+        left: [0, -1],
+        right: [0, 1]
+      }[direction];
+
+      if (!delta) return;
+
+      const nextRow = player.row + delta[0];
+      const nextCol = player.col + delta[1];
+
+      if (walls.has(key(nextRow, nextCol))) return;
+
+      player = { row: nextRow, col: nextCol };
+      steps++;
+
+      const spot = key(nextRow, nextCol);
+      if (coins.has(spot)) {
+        coins.delete(spot);
+        message.textContent = "เก็บเหรียญได้แล้ว! ไปต่อเลย";
+      }
+
+      render();
+
+      if (player.row === exit.row && player.col === exit.col) {
+        if (coins.size === 0) {
+          finishLevel();
+        } else {
+          message.textContent = `เก็บเหรียญที่เหลืออีก ${coins.size} เหรียญก่อนนะ`;
+        }
+      }
+    }
+
+    function finishLevel() {
+      won = true;
+      const bonus = Math.max(0, (levels[levelIndex].par - steps) * 2);
+      const earned = initialCoinCount * 10 + 50 + bonus;
+      totalScore += earned;
+      saveScore();
+
+      message.textContent = `ผ่านด่านแล้ว! ได้ ${earned} คะแนน ⭐`;
+      nextButton.disabled = false;
+      nextButton.textContent =
+        levelIndex === levels.length - 1 ? "กลับไปเล่นด่านแรก" : "ด่านถัดไป";
+    }
+
+    document.addEventListener("keydown", event => {
+      const keys = {
+        ArrowUp: "up", w: "up", W: "up",
+        ArrowDown: "down", s: "down", S: "down",
+        ArrowLeft: "left", a: "left", A: "left",
+        ArrowRight: "right", d: "right", D: "right"
+      };
+
+      if (keys[event.key]) {
+        event.preventDefault();
+        move(keys[event.key]);
+      }
+    });
+
+    document.querySelectorAll(".control").forEach(button => {
+      button.addEventListener("click", () => move(button.dataset.dir));
+    });
+
+    document.getElementById("restartButton").addEventListener("click", loadLevel);
+
+    nextButton.addEventListener("click", () => {
+      if (levelIndex < levels.length - 1) {
+        levelIndex++;
+      } else {
+        levelIndex = 0;
+      }
+      loadLevel();
+    });
+
+    document.getElementById("score").textContent = totalScore;
+    loadLevel();
+  </script>
+</body>
+</html>
