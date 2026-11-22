@@ -177,29 +177,106 @@
 
 <!-- สคริปต์เกมหลัก -->
 <script>
-    const questionsData = {
-        easy: [
-            { q: "Apple แปลว่าอะไร?", options: ["แอปเปิ้ล", "ส้ม", "กล้วย", "องุ่น"], answer: 0 },
-            { q: "Cat คือสัตว์ชนิดใด?", options: ["สุนัข", "แมว", "นก", "ปลา"], answer: 1 },
-            { q: "Red คือสีอะไร?", options: ["สีเขียว", "สีฟ้า", "สีแดง", "สีเหลือง"], answer: 2 },
-            { q: "Book แปลว่าอะไร?", options: ["ปากกา", "หนังสือ", "โต๊ะ", "เก้าอี้"], answer: 1 },
-            { q: "Sun หมายถึงอะไร?", options: ["ดวงจันทร์", "ดวงอาทิตย์", "ดวงดาว", "ก้อนเมฆ"], answer: 1 }
-        ],
-        medium: [
-            { q: "Hospital แปลว่าอะไร?", options: ["โรงเรียน", "โรงพยาบาล", "ตลาด", "สนามบิน"], answer: 1 },
-            { q: "Which one is a fruit?", options: ["Carrot", "Banana", "Potato", "Broccoli"], answer: 1 },
-            { q: "Elephant แปลว่าอะไร?", options: ["ม้า", "ช้าง", "เสือ", "สิงโต"], answer: 1 },
-            { q: "Yesterday หมายถึงอะไร?", options: ["พรุ่งนี้", "วันนี้", "เมื่อวานนี้", "สัปดาห์หน้า"], answer: 2 },
-            { q: "Library คือสถานที่ใด?", options: ["ห้องสมุด", "โรงหนัง", "สวนสนุก", "ร้านค้า"], answer: 0 }
-        ],
-        hard: [
-            { q: "Courage แปลว่าอะไร?", options: ["ความกล้าหาญ", "ความกลัว", "ความเศร้า", "ความโกรธ"], answer: 0 },
-            { q: "คำว่า 'Scientist' หมายถึงอาชีพใด?", options: ["วิศวกร", "นักวิทยาศาสตร์", "หมอ", "ครู"], answer: 1 },
-            { q: "คำพ้องความหมาย (Synonym) ของคำว่า 'Big' คือข้อใด?", options: ["Small", "Tiny", "Huge", "Short"], answer: 2 },
-            { q: "Environment แปลว่าอะไร?", options: ["สิ่งแวดล้อม", "เทคโนโลยี", "เศรษฐกิจ", "การเมือง"], answer: 0 },
-            { q: "Successful หมายถึงอะไร?", options: ["ล้มเหลว", "ประสบความสำเร็จ", "โชคดี", "อันตราย"], answer: 1 }
-        ]
-    };
+   const questionsData = {
+    easy: [
+        { q: "Apple แปลว่าอะไร?", options: ["แอปเปิ้ล", "ส้ม", "กล้วย", "องุ่น"], answer: 0 },
+        { q: "Cat คือสัตว์ชนิดใด?", options: ["สุนัข", "แมว", "นก", "ปลา"], answer: 1 },
+        { q: "Red คือสีอะไร?", options: ["สีเขียว", "สีฟ้า", "สีแดง", "สีเหลือง"], answer: 2 },
+        { q: "Book แปลว่าอะไร?", options: ["ปากกา", "หนังสือ", "โต๊ะ", "เก้าอี้"], answer: 1 },
+        { q: "Sun หมายถึงอะไร?", options: ["ดวงจันทร์", "ดวงอาทิตย์", "ดวงดาว", "ก้อนเมฆ"], answer: 1 },
+        { q: "Dog แปลว่าอะไร?", options: ["แมว", "กระต่าย", "สุนัข", "ม้า"], answer: 2 },
+        { q: "Blue คือสีอะไร?", options: ["สีฟ้า/สีน้ำเงิน", "สีดำ", "สีชมพู", "สีส้ม"], answer: 0 },
+        { q: "คำว่า 'Milk' หมายถึงอะไร?", options: ["น้ำ", "นม", "น้ำผลไม้", "ชา"], answer: 1 },
+        { q: "คำว่า 'Fish' หมายถึงอะไร?", options: ["นก", "ปลา", "กบ", "เป็ด"], answer: 1 },
+        { q: "คำว่า 'One' คือเลขอะไร?", options: ["หนึ่ง", "สอง", "สาม", "สี่"], answer: 0 },
+        { q: "คำว่า 'Happy' แปลว่าอะไร?", options: ["เหนื่อย", "มีความสุข", "หิว", "ง่วง"], answer: 1 },
+        { q: "คำว่า 'Big' ตรงข้ามกับคำใด?", options: ["Tall", "Small", "Long", "Fast"], answer: 1 },
+        { q: "คำว่า 'Mother' หมายถึงใคร?", options: ["พ่อ", "แม่", "พี่ชาย", "น้องสาว"], answer: 1 },
+        { q: "คำว่า '学校' ไม่ใช่—คำว่า 'School' แปลว่าอะไร?", options: ["บ้าน", "โรงเรียน", "ร้านค้า", "สวน"], answer: 1 },
+        { q: "คำว่า 'Green' คือสีอะไร?", options: ["สีเขียว", "สีแดง", "สีม่วง", "สีขาว"], answer: 0 },
+        { q: "คำว่า 'Bird' คือสัตว์ชนิดใด?", options: ["นก", "ปลา", "แมว", "ม้า"], answer: 0 },
+        { q: "คำว่า 'Water' แปลว่าอะไร?", options: ["ไฟ", "น้ำ", "ลม", "ดิน"], answer: 1 },
+        { q: "คำว่า 'Three' คือเลขอะไร?", options: ["หนึ่ง", "สอง", "สาม", "ห้า"], answer: 2 },
+        { q: "คำว่า 'Thank you' ใช้พูดเมื่อใด?", options: ["ขอบคุณ", "ขอโทษ", "ลาก่อน", "สวัสดี"], answer: 0 },
+        { q: "คำว่า 'Hello' ใช้พูดว่าอะไร?", options: ["สวัสดี", "ราตรีสวัสดิ์", "ขอโทษ", "ยินดีด้วย"], answer: 0 },
+        { q: "คำว่า 'Book' ใช้ทำอะไร?", options: ["อ่าน", "กิน", "ว่ายน้ำ", "ขับรถ"], answer: 0 },
+        { q: "คำว่า 'Hot' ตรงข้ามกับคำใด?", options: ["Warm", "Cold", "Sunny", "Dry"], answer: 1 },
+        { q: "คำว่า 'Father' หมายถึงใคร?", options: ["แม่", "พ่อ", "คุณยาย", "คุณป้า"], answer: 1 },
+        { q: "คำว่า 'Monday' เป็นชื่ออะไร?", options: ["วันจันทร์", "เดือนมกราคม", "ฤดูร้อน", "เวลาเช้า"], answer: 0 },
+        { q: "คำว่า 'Table' แปลว่าอะไร?", options: ["เก้าอี้", "โต๊ะ", "ประตู", "หน้าต่าง"], answer: 1 },
+        { q: "คำว่า 'Jump' หมายถึงอะไร?", options: ["กระโดด", "นั่ง", "นอน", "ร้องเพลง"], answer: 0 },
+        { q: "คำว่า 'Yellow' คือสีอะไร?", options: ["สีเหลือง", "สีเทา", "สีน้ำตาล", "สีดำ"], answer: 0 },
+        { q: "คำว่า 'I am hungry.' หมายถึงอะไร?", options: ["ฉันหิว", "ฉันง่วง", "ฉันหนาว", "ฉันมีความสุข"], answer: 0 },
+        { q: "คำว่า 'Good night' ใช้พูดเวลาใด?", options: ["ตอนเช้า", "ก่อนนอน/กลางคืน", "ตอนเที่ยง", "ตอนบ่าย"], answer: 1 },
+        { q: "คำว่า 'Four' คือเลขอะไร?", options: ["สอง", "สาม", "สี่", "ห้า"], answer: 2 }
+    ],
+
+    medium: [
+        { q: "Hospital แปลว่าอะไร?", options: ["โรงเรียน", "โรงพยาบาล", "ตลาด", "สนามบิน"], answer: 1 },
+        { q: "Which one is a fruit?", options: ["Carrot", "Banana", "Potato", "Broccoli"], answer: 1 },
+        { q: "Elephant แปลว่าอะไร?", options: ["ม้า", "ช้าง", "เสือ", "สิงโต"], answer: 1 },
+        { q: "Yesterday หมายถึงอะไร?", options: ["พรุ่งนี้", "วันนี้", "เมื่อวานนี้", "สัปดาห์หน้า"], answer: 2 },
+        { q: "Library คือสถานที่ใด?", options: ["ห้องสมุด", "โรงหนัง", "สวนสนุก", "ร้านค้า"], answer: 0 },
+        { q: "เลือกคำเติมในช่องว่าง: She ___ to school every day.", options: ["go", "goes", "going", "gone"], answer: 1 },
+        { q: "คำตรงข้ามของ 'early' คือคำใด?", options: ["late", "fast", "soon", "quick"], answer: 0 },
+        { q: "คำว่า 'careful' หมายถึงอะไร?", options: ["ระมัดระวัง", "เสียงดัง", "หิว", "รวดเร็ว"], answer: 0 },
+        { q: "เลือกคำเติมในช่องว่าง: They ___ football now.", options: ["play", "plays", "are playing", "played"], answer: 2 },
+        { q: "Which one is a vegetable?", options: ["Apple", "Carrot", "Grape", "Peach"], answer: 1 },
+        { q: "คำว่า 'borrow' หมายถึงอะไร?", options: ["ยืม", "ซื้อ", "ขาย", "ทำหาย"], answer: 0 },
+        { q: "เลือกคำเติมในช่องว่าง: I ___ my homework yesterday.", options: ["do", "does", "did", "doing"], answer: 2 },
+        { q: "คำว่า 'quiet' หมายถึงอะไร?", options: ["เงียบ", "วุ่นวาย", "สว่าง", "กว้าง"], answer: 0 },
+        { q: "คำพ้องความหมายของ 'begin' คือคำใด?", options: ["finish", "start", "stop", "wait"], answer: 1 },
+        { q: "เลือกคำเติมในช่องว่าง: There ___ two books on the desk.", options: ["is", "are", "was", "be"], answer: 1 },
+        { q: "คำว่า 'usually' หมายถึงอะไร?", options: ["ไม่เคย", "บางครั้ง", "โดยปกติ", "ทันที"], answer: 2 },
+        { q: "Which sentence is correct?", options: ["He have a bike.", "He has a bike.", "He having a bike.", "He haves a bike."], answer: 1 },
+        { q: "คำว่า 'polite' หมายถึงอะไร?", options: ["สุภาพ", "ประมาท", "ขี้เกียจ", "โกรธ"], answer: 0 },
+        { q: "เลือกคำเติมในช่องว่าง: My birthday is ___ May.", options: ["at", "on", "in", "by"], answer: 2 },
+        { q: "คำว่า 'dangerous' หมายถึงอะไร?", options: ["ปลอดภัย", "อันตราย", "สะดวก", "สนุก"], answer: 1 },
+        { q: "คำพหูพจน์ของ 'child' คือข้อใด?", options: ["childs", "childes", "children", "childrens"], answer: 2 },
+        { q: "เลือกคำเติมในช่องว่าง: We ___ visit grandma tomorrow.", options: ["will", "did", "were", "have"], answer: 0 },
+        { q: "คำว่า 'expensive' มีความหมายตรงข้ามกับคำใด?", options: ["cheap", "large", "beautiful", "useful"], answer: 0 },
+        { q: "Which one is a mode of transportation?", options: ["Bicycle", "Pillow", "Cupboard", "Blanket"], answer: 0 },
+        { q: "เลือกคำเติมในช่องว่าง: Tom is ___ than Ben.", options: ["tall", "taller", "tallest", "more tall"], answer: 1 },
+        { q: "คำว่า 'weather' หมายถึงอะไร?", options: ["สภาพอากาศ", "การเดินทาง", "อาหาร", "การบ้าน"], answer: 0 },
+        { q: "เลือกคำเติมในช่องว่าง: I have ___ orange.", options: ["a", "an", "the", "some"], answer: 1 },
+        { q: "คำว่า 'museum' คือสถานที่ใด?", options: ["พิพิธภัณฑ์", "โรงพยาบาล", "สถานีรถไฟ", "ร้านอาหาร"], answer: 0 },
+        { q: "คำว่า 'friendly' หมายถึงอะไร?", options: ["เป็นมิตร", "ขี้อาย", "ใจร้อน", "เหนื่อย"], answer: 0 },
+        { q: "เลือกคำเติมในช่องว่าง: How ___ apples do you need?", options: ["much", "many", "any", "long"], answer: 1 }
+    ],
+
+    hard: [
+        { q: "Courage แปลว่าอะไร?", options: ["ความกล้าหาญ", "ความกลัว", "ความเศร้า", "ความโกรธ"], answer: 0 },
+        { q: "คำว่า 'Scientist' หมายถึงอาชีพใด?", options: ["วิศวกร", "นักวิทยาศาสตร์", "หมอ", "ครู"], answer: 1 },
+        { q: "คำพ้องความหมาย (synonym) ของ 'big' คือข้อใด?", options: ["small", "tiny", "huge", "short"], answer: 2 },
+        { q: "Environment แปลว่าอะไร?", options: ["สิ่งแวดล้อม", "เทคโนโลยี", "เศรษฐกิจ", "การเมือง"], answer: 0 },
+        { q: "Successful หมายถึงอะไร?", options: ["ล้มเหลว", "ประสบความสำเร็จ", "โชคดี", "อันตราย"], answer: 1 },
+        { q: "เลือกคำเติมในช่องว่าง: If it rains, we ___ at home.", options: ["stay", "stayed", "will stay", "staying"], answer: 2 },
+        { q: "คำตรงข้ามของ 'ancient' คือคำใด?", options: ["modern", "historic", "old", "traditional"], answer: 0 },
+        { q: "เลือกคำเติมในช่องว่าง: She has lived here ___ 2020.", options: ["for", "since", "during", "at"], answer: 1 },
+        { q: "คำว่า 'generous' หมายถึงอะไร?", options: ["ใจกว้าง", "เห็นแก่ตัว", "ขี้อาย", "ประมาท"], answer: 0 },
+        { q: "Which sentence is in the past tense?", options: ["They walk to school.", "They are walking to school.", "They walked to school.", "They will walk to school."], answer: 2 },
+        { q: "คำว่า 'discover' หมายถึงอะไร?", options: ["ค้นพบ", "ปกปิด", "ทำลาย", "ปฏิเสธ"], answer: 0 },
+        { q: "เลือกคำเติมในช่องว่าง: The cake ___ by my sister yesterday.", options: ["bakes", "baked", "was baked", "is baking"], answer: 2 },
+        { q: "คำพ้องความหมายของ 'rapid' คือข้อใด?", options: ["slow", "quick", "quiet", "weak"], answer: 1 },
+        { q: "เลือกคำเติมในช่องว่าง: You ___ wear a helmet when riding a bike.", options: ["should", "might not", "would", "could have"], answer: 0 },
+        { q: "คำว่า 'persuade' หมายถึงอะไร?", options: ["โน้มน้าว", "หลีกเลี่ยง", "ลืม", "คาดเดา"], answer: 0 },
+        { q: "เลือกคำเติมในช่องว่าง: Neither of the answers ___ correct.", options: ["are", "were", "is", "be"], answer: 2 },
+        { q: "คำว่า 'consequence' หมายถึงอะไร?", options: ["ผลที่ตามมา", "คำแนะนำ", "การเริ่มต้น", "ความตั้งใจ"], answer: 0 },
+        { q: "เลือกคำเติมในช่องว่าง: By the time we arrived, the movie ___.", options: ["starts", "has started", "had started", "will start"], answer: 2 },
+        { q: "คำตรงข้ามของ 'increase' คือคำใด?", options: ["expand", "decrease", "improve", "continue"], answer: 1 },
+        { q: "Which word is an adjective?", options: ["carefully", "happiness", "brilliant", "decide"], answer: 2 },
+        { q: "เลือกคำเติมในช่องว่าง: I enjoy ___ books in my free time.", options: ["read", "to reading", "reading", "reads"], answer: 2 },
+        { q: "คำว่า 'reliable' หมายถึงอะไร?", options: ["เชื่อถือได้", "น่าสงสัย", "ซับซ้อน", "ชั่วคราว"], answer: 0 },
+        { q: "เลือกคำเติมในช่องว่าง: This is the ___ book I have ever read.", options: ["interesting", "more interesting", "most interesting", "interestingly"], answer: 2 },
+        { q: "คำว่า 'annual' หมายถึงอะไร?", options: ["เกิดขึ้นทุกปี", "เกิดขึ้นทุกวัน", "เกิดขึ้นทุกชั่วโมง", "เกิดขึ้นครั้งเดียว"], answer: 0 },
+        { q: "เลือกคำเติมในช่องว่าง: She asked me where I ___.", options: ["live", "lived", "am living", "will live"], answer: 1 },
+        { q: "คำพ้องความหมายของ 'assist' คือข้อใด?", options: ["help", "ignore", "stop", "hide"], answer: 0 },
+        { q: "เลือกคำเติมในช่องว่าง: Despite ___ tired, he finished his work.", options: ["be", "being", "was", "to be"], answer: 1 },
+        { q: "คำว่า 'accurate' หมายถึงอะไร?", options: ["ถูกต้องแม่นยำ", "รวดเร็วมาก", "มีราคาแพง", "เข้าใจยาก"], answer: 0 },
+        { q: "เลือกคำเติมในช่องว่าง: The woman ___ lives next door is a doctor.", options: ["which", "whose", "who", "where"], answer: 2 },
+        { q: "คำว่า 'beneficial' หมายถึงอะไร?", options: ["เป็นประโยชน์", "เป็นอันตราย", "ไม่จำเป็น", "น่าเบื่อ"], answer: 0 }
+    ]
+};
 
     let currentLevel = "easy";
     let currentQuestions = [];
@@ -269,7 +346,7 @@
     function checkAnswer(selected, correct) {
         clearInterval(timer);
         if (selected === correct) {
-            score += 10 + (timeLeft * 2);
+            score += 1 + (timeLeft * 2);
         }
         currentIndex++;
         loadQuestion();

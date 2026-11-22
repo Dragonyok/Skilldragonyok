@@ -428,19 +428,19 @@
       return result;
     }
 
-    function getBestScore(mode) {
-      try {
-        return Number(localStorage.getItem(`m1-best-${mode}`)) || 0;
-      } catch {
-        return 0;
-      }
-    }
+ function getBestScore(mode) {
+  try {
+    return Number(localStorage.getItem(`m1-best-points-${mode}`)) || 0;
+  } catch {
+    return 0;
+  }
+}
 
-    function showBestScore() {
-      const mode = document.getElementById("subjectSelect").value;
-      document.getElementById("bestOnStart").textContent =
-        `คะแนนสูงสุด: ${getBestScore(mode)}%`;
-    }
+function showBestScore() {
+  const mode = document.getElementById("subjectSelect").value;
+  document.getElementById("bestOnStart").textContent =
+    `คะแนนสูงสุด: ${getBestScore(mode)} คะแนน`;
+}
 
     function startGame() {
       clearInterval(timerId);
@@ -559,43 +559,47 @@
       }
     }
 
-    function finishGame() {
-      clearInterval(timerId);
+function finishGame() {
+  clearInterval(timerId);
 
-      const percentage = Math.round(
-        (correctCount / questions.length) * 100
-      );
-      const newBest = Math.max(getBestScore(selectedMode), percentage);
+  const percentage = Math.round(
+    (correctCount / questions.length) * 100
+  );
 
-      try {
-        localStorage.setItem(`m1-best-${selectedMode}`, String(newBest));
-      } catch {
-        // เกมยังเล่นได้ แม้เบราว์เซอร์จะปิดการบันทึกข้อมูล
-      }
+  const newBest = Math.max(getBestScore(selectedMode), correctCount);
 
-      let message = "ฝึกต่ออีกนิด แล้วลองเล่นใหม่ได้เลย";
-      if (percentage === 100) {
-        message = "ยอดเยี่ยม! ตอบถูกทุกข้อ";
-      } else if (percentage >= 70) {
-        message = "ทำได้ดีมาก! ทบทวนข้อที่พลาดอีกนิด";
-      } else if (percentage >= 40) {
-        message = "เริ่มต้นได้ดี ลองอ่านเฉลยแล้วเล่นอีกครั้ง";
-      }
+  try {
+    localStorage.setItem(
+      `m1-best-points-${selectedMode}`,
+      String(newBest)
+    );
+  } catch {
+    // เกมยังเล่นได้ แม้เบราว์เซอร์จะปิดการบันทึกข้อมูล
+  }
 
-      document.getElementById("resultText").innerHTML =
-        `<p>ตอบถูก <strong>${correctCount} จาก ${questions.length} ข้อ</strong> (${percentage}%)</p>
-         <p>${message}</p>`;
+  let message = "ฝึกต่ออีกนิด แล้วลองเล่นใหม่ได้เลย";
+  if (percentage === 100) {
+    message = "ยอดเยี่ยม! ตอบถูกทุกข้อ";
+  } else if (percentage >= 70) {
+    message = "ทำได้ดีมาก! ทบทวนข้อที่พลาดอีกนิด";
+  } else if (percentage >= 40) {
+    message = "เริ่มต้นได้ดี ลองอ่านเฉลยแล้วเล่นอีกครั้ง";
+  }
 
-      document.getElementById("bestAtEnd").textContent =
-        `คะแนนสูงสุดของหมวดนี้: ${newBest}%`;
+  document.getElementById("resultText").innerHTML =
+    `<p>ได้ <strong>${correctCount} คะแนน</strong> จาก ${questions.length} คะแนน</p>
+     <p>${message}</p>`;
 
-      showScreen("resultScreen");
+  document.getElementById("bestAtEnd").textContent =
+    `คะแนนสูงสุดของหมวดนี้: ${newBest} คะแนน`;
 
-      // ⭐ เรียกฟังก์ชันบันทึกคะแนนลง Firebase (ใช้เปอร์เซ็นต์เป็นคะแนน)
-      if (typeof saveTestScore === 'function') {
-          saveTestScore(percentage);
-      }
-    }
+  showScreen("resultScreen");
+
+  // บันทึกคะแนนดิบ: ตอบถูกข้อละ 1 คะแนน
+  if (typeof saveTestScore === "function") {
+    saveTestScore(correctCount);
+  }
+}
 
     function backToStart() {
       clearInterval(timerId);

@@ -227,6 +227,7 @@
         </div>
         <div class="hud">
             <span>🪙 เหรียญ: <span id="g1-score">0</span></span>
+            <span>ข้อ <span id="g1-question">1</span>/30</span>
             <span>⏱️ เวลา: <span id="g1-timer">20</span>s</span>
         </div>
         <div class="runner-track">
@@ -245,6 +246,7 @@
         </div>
         <div class="hud">
             <span>🪙 เหรียญ: <span id="g2-score">0</span></span>
+            <span>ข้อ <span id="g2-question">1</span>/30</span>
             <span>⏱️ เวลา: <span id="g2-timer">15</span>s</span>
         </div>
         <div class="box-display">
@@ -263,6 +265,7 @@
         </div>
         <div class="hud">
             <span>🪙 เหรียญ: <span id="g3-score">0</span></span>
+            <span>ข้อ <span id="g3-question">1</span>/30</span>
             <span>⏱️ เวลา: <span id="g3-timer">20</span>s</span>
         </div>
         <div class="box-display">
@@ -285,308 +288,331 @@
 
 <!-- สคริปต์เกมหลัก -->
 <script>
+    const QUESTIONS_PER_GAME = 30;
+
     let currentMode = 1;
     let currentDiff = 1;
     let score = 0;
-    let timer = 0;
+    let questionNo = 0;
+    let elapsedSeconds = 0;
     let timerInterval = null;
+    let animationInterval = null;
     let isPlaying = false;
+    let questionLocked = false;
+    let gameHasEnded = false;
 
-    // ฐานข้อมูลคำศัพท์แยกตามโหมดและความยาก
+    // ข้อมูลเกมที่ 1: วิ่งเก็บคำตรงหมวด
     const dbGame1 = {
         1: [
             { cat: "ผลไม้", correct: ["ส้ม", "กล้วย", "มะม่วง"], wrong: ["แมว", "โต๊ะ", "ดินสอ"] },
             { cat: "สัตว์", correct: ["สุนัข", "แมว", "ช้าง"], wrong: ["แอปเปิ้ล", "แตงโม", "มะละกอ"] }
         ],
         2: [
-            { cat: "คำเป็น (แม่ ก กา ยาว / นมยวง)", correct: ["มา", "กิน", "เรียน"], wrong: ["นก", "กบ", "วัด"] },
-            { cat: "คำตาย (แม่ กก กด กบ / เสียงสั้น)", correct: ["รัก", "บท", "ธูป"], wrong: ["มา", "ดู", "ปู"] }
+            { cat: "คำเป็น", correct: ["มา", "กิน", "เรียน"], wrong: ["นก", "กบ", "วัด"] },
+            { cat: "คำตาย", correct: ["รัก", "บท", "ธูป"], wrong: ["มา", "ดู", "ปู"] }
         ],
         3: [
-            { cat: "คำว่า 'ขัน' (หมายถึงภาชนะตักน้ำ)", correct: ["ขันน้ำ", "ตักน้ำ"], wrong: ["ไก่ขัน", "หัวเราะขัน"] },
-            { cat: "คำว่า 'สระ' (หมายถึงแหล่งน้ำ)", correct: ["สระว่ายน้ำ", "สระน้ำ"], wrong: ["สระผม", "สระอักษร"] }
+            { cat: "คำว่า “ขัน” ที่หมายถึงภาชนะ", correct: ["ขันน้ำ", "ขันตักน้ำ"], wrong: ["ไก่ขัน", "หัวเราะขัน"] },
+            { cat: "คำว่า “สระ” ที่หมายถึงแหล่งน้ำ", correct: ["สระว่ายน้ำ", "สระน้ำ"], wrong: ["สระผม", "สระอักษร"] }
         ]
     };
 
+    // ข้อมูลเกมที่ 2: ศึกวรรณยุกต์และหลักภาษา
     const dbGame2 = {
         1: [
-            { q: "คำว่า 'ปา' มีเสียงวรรณยุกต์ใด?", sub: "สามัญ เอก โท ตรี จัตวา", ans: "สามัญ", choices: ["สามัญ", "เอก", "โท", "ตรี"] },
-            { q: "คำว่า 'ป่า' มีเสียงวรรณยุกต์ใด?", sub: "สามัญ เอก โท ตรี จัตวา", ans: "เอก", choices: ["สามัญ", "เอก", "โท", "จัตวา"] }
+            { q: "คำว่า “ปา” มีเสียงวรรณยุกต์ใด?", sub: "เลือกเสียงวรรณยุกต์ให้ถูกต้อง", ans: "สามัญ", choices: ["สามัญ", "เอก", "โท", "ตรี"] },
+            { q: "คำว่า “ป่า” มีเสียงวรรณยุกต์ใด?", sub: "เลือกเสียงวรรณยุกต์ให้ถูกต้อง", ans: "เอก", choices: ["สามัญ", "เอก", "โท", "จัตวา"] }
         ],
         2: [
-            { q: "'ก จ ด ต บ ป อ' คืออักษรหมู่ใด?", sub: "พิจารณาจากพยัญชนะต้น", ans: "อักษรกลาง", choices: ["อักษรสูง", "อักษรกลาง", "อักษรต่ำ", "อักษรคู่"] },
-            { q: "'ข ฉ ถ ผ ฝ ส ห' คืออักษรหมู่ใด?", sub: "พิจารณาจากพยัญชนะต้น", ans: "อักษรสูง", choices: ["อักษรสูง", "อักษรกลาง", "อักษรต่ำ", "คำเป็น"] }
+            { q: "ก จ ด ต บ ป อ เป็นอักษรหมู่ใด?", sub: "พิจารณาพยัญชนะต้น", ans: "อักษรกลาง", choices: ["อักษรสูง", "อักษรกลาง", "อักษรต่ำ", "อักษรคู่"] },
+            { q: "ข ฉ ถ ผ ฝ ส ห เป็นอักษรหมู่ใด?", sub: "พิจารณาพยัญชนะต้น", ans: "อักษรสูง", choices: ["อักษรสูง", "อักษรกลาง", "อักษรต่ำ", "อักษรคู่"] }
         ],
         3: [
-            { q: "คำว่า 'ประเสริฐ' สะกดด้วยมาตราใด?", sub: "ดูที่พยัญชนะท้ายคำ", ans: "แม่กด", choices: ["แม่กน", "แม่กด", "แม่กบ", "แม่กง"] },
-            { q: "คำว่า 'กุญชร' สะกดด้วยมาตราใด?", sub: "ดูที่พยัญชนะท้ายคำ", ans: "แม่กน", choices: ["แม่กม", "แม่กน", "แม่กก", "แม่กด"] }
+            { q: "คำว่า “ประเสริฐ” สะกดด้วยมาตราใด?", sub: "พิจารณาเสียงพยัญชนะท้าย", ans: "แม่กด", choices: ["แม่กน", "แม่กด", "แม่กบ", "แม่กง"] },
+            { q: "คำว่า “กุญชร” สะกดด้วยมาตราใด?", sub: "พิจารณาเสียงพยัญชนะท้าย", ans: "แม่กน", choices: ["แม่กม", "แม่กน", "แม่กก", "แม่กด"] }
         ]
     };
 
+    // ข้อมูลเกมที่ 3: นักสืบคำราชาศัพท์
     const dbGame3 = {
         1: [
-            { q: "คำราชาศัพท์ของ 'กิน' คืออะไร?", ans: "เสวย", choices: ["เสวย", "บรรทม", "ประชำ", "ทรงพระสำราญ"] },
-            { q: "คำราชาศัพท์ของ 'นอน' คืออะไร?", ans: "บรรทม", choices: ["เสวย", "บรรทม", "สรงน้ำ", "เสด็จ"] }
+            { q: "คำราชาศัพท์ของ “กิน” คืออะไร?", ans: "เสวย", choices: ["เสวย", "บรรทม", "สรงน้ำ", "เสด็จ"] },
+            { q: "คำราชาศัพท์ของ “นอน” คืออะไร?", ans: "บรรทม", choices: ["เสวย", "บรรทม", "สรงน้ำ", "เสด็จ"] }
         ],
         2: [
-            { q: "คำราชาศัพท์ของ 'มือ' คืออะไร?", ans: "พระหัตถ์", choices: ["พระบาท", "พระโอษฐ์", "พระหัตถ์", "พระศอ"] },
-            { q: "คำราชาศัพท์ของ 'หู' คืออะไร?", ans: "พระกรรณ", choices: ["พระเนตร", "พระกรรณ", "พระนาสิก", "พระเกศา"] }
+            { q: "คำราชาศัพท์ของ “มือ” คืออะไร?", ans: "พระหัตถ์", choices: ["พระบาท", "พระโอษฐ์", "พระหัตถ์", "พระศอ"] },
+            { q: "คำราชาศัพท์ของ “หู” คืออะไร?", ans: "พระกรรณ", choices: ["พระเนตร", "พระกรรณ", "พระนาสิก", "พระเกศา"] }
         ],
         3: [
-            { q: "คำราชาศัพท์ของ 'พ่อ (พระราชา)' คืออะไร?", ans: "พระราชบิดา", choices: ["พระราชบิดา", "พระราชมารดา", "พระราชสวามี", "พระราชโอรส"] },
-            { q: "คำราชาศัพท์ของ 'อาบน้ำ' คืออะไร?", ans: "สรงน้ำ", choices: ["เสวย", "สรงน้ำ", "บรรทม", "ทรงพระดำเนิน"] }
+            { q: "คำราชาศัพท์ของ “พ่อ” ใช้คำใด?", ans: "พระราชบิดา", choices: ["พระราชบิดา", "พระราชมารดา", "พระราชสวามี", "พระราชโอรส"] },
+            { q: "คำราชาศัพท์ของ “อาบน้ำ” คืออะไร?", ans: "สรงน้ำ", choices: ["เสวย", "สรงน้ำ", "บรรทม", "ทรงพระดำเนิน"] }
         ]
     };
 
+    function $(id) {
+        return document.getElementById(id);
+    }
+
+    function hideAllScreens() {
+        ["screen-home", "screen-level", "screen-gameover", "game-1", "game-2", "game-3"]
+            .forEach(id => $(id).classList.add("hidden"));
+    }
+
     function openLevelSelect(mode) {
+        stopGame();
         currentMode = mode;
-        document.getElementById("screen-home").classList.add("hidden");
-        document.getElementById("screen-level").classList.remove("hidden");
-        const titles = ["", "วิ่งเก็บคำตรงหมวด", "ศึกวรรณยุกต์ปราบมอน", "นักสืบคำราชาศัพท์"];
-        document.getElementById("mode-title").textContent = titles[mode];
+        hideAllScreens();
+        $("screen-level").classList.remove("hidden");
+
+        const titles = [
+            "",
+            "วิ่งเก็บคำตรงหมวด",
+            "ศึกวรรณยุกต์ปราบมอน",
+            "นักสืบคำราชาศัพท์"
+        ];
+        $("mode-title").textContent = titles[mode];
     }
 
     function goHome() {
         stopGame();
-        document.getElementById("screen-level").classList.add("hidden");
-        document.getElementById("screen-gameover").classList.add("hidden");
-        document.getElementById("screen-home").classList.remove("hidden");
+        hideAllScreens();
+        $("screen-home").classList.remove("hidden");
     }
 
     function toLevelSelect() {
         stopGame();
-        document.getElementById("game-1").classList.add("hidden");
-        document.getElementById("game-2").classList.add("hidden");
-        document.getElementById("game-3").classList.add("hidden");
-        document.getElementById("screen-gameover").classList.add("hidden");
-        document.getElementById("screen-level").classList.remove("hidden");
+        hideAllScreens();
+        $("screen-level").classList.remove("hidden");
     }
 
     function startGame(diff) {
+        stopGame();
+
         currentDiff = diff;
         score = 0;
-        document.getElementById("screen-level").classList.add("hidden");
+        questionNo = 0;
+        elapsedSeconds = 0;
+        questionLocked = false;
+        gameHasEnded = false;
 
-        if (currentMode === 1) {
-            document.getElementById("game-1").classList.remove("hidden");
-            startG1();
-        } else if (currentMode === 2) {
-            document.getElementById("game-2").classList.remove("hidden");
-            startG2();
-        } else if (currentMode === 3) {
-            document.getElementById("game-3").classList.remove("hidden");
-            startG3();
-        }
+        hideAllScreens();
+        $("game-" + currentMode).classList.remove("hidden");
+
+        const scoreEl = $("g" + currentMode + "-score");
+        if (scoreEl) scoreEl.textContent = "0";
+
+        updateQuestionCounter();
+        updateTimer();
+
+        isPlaying = true;
+
+        if (currentMode === 1) startG1();
+        if (currentMode === 2) startG2();
+        if (currentMode === 3) startG3();
+
+        timerInterval = setInterval(() => {
+            if (!isPlaying) return;
+            elapsedSeconds++;
+            updateTimer();
+        }, 1000);
+    }
+
+    function updateQuestionCounter() {
+        const el = $("g" + currentMode + "-question");
+        if (el) el.textContent = Math.min(questionNo + 1, QUESTIONS_PER_GAME);
+    }
+
+    function updateTimer() {
+        const el = $("g" + currentMode + "-timer");
+        if (el) el.textContent = elapsedSeconds;
+    }
+
+    function updateScore() {
+        const el = $("g" + currentMode + "-score");
+        if (el) el.textContent = score;
     }
 
     function stopGame() {
         clearInterval(timerInterval);
+        clearInterval(animationInterval);
+        timerInterval = null;
+        animationInterval = null;
         isPlaying = false;
     }
 
-    function gameOver() {
-        stopGame();
-        document.getElementById("game-1").classList.add("hidden");
-        document.getElementById("game-2").classList.add("hidden");
-        document.getElementById("game-3").classList.add("hidden");
-        document.getElementById("screen-gameover").classList.remove("hidden");
-        document.getElementById("final-coins").textContent = score;
+    function endQuestion(points) {
+        if (!isPlaying || questionLocked) return;
+        questionLocked = true;
 
-        // ⭐ เรียกฟังก์ชันบันทึกคะแนนลง Firebase
-        if (typeof saveThaiScore === 'function') {
+        score = Math.max(0, score + points);
+        updateScore();
+
+        questionNo++;
+
+        if (questionNo >= QUESTIONS_PER_GAME) {
+            gameOver();
+            return;
+        }
+
+        updateQuestionCounter();
+
+        setTimeout(() => {
+            if (!isPlaying) return;
+
+            questionLocked = false;
+            if (currentMode === 1) nextG1Round();
+            if (currentMode === 2) nextG2Round();
+            if (currentMode === 3) nextG3Round();
+        }, 250);
+    }
+
+    function gameOver() {
+        if (gameHasEnded) return;
+        gameHasEnded = true;
+        stopGame();
+
+        hideAllScreens();
+        $("screen-gameover").classList.remove("hidden");
+        $("final-coins").textContent = score;
+
+        if (typeof saveThaiScore === "function") {
             saveThaiScore(score);
         }
     }
 
-    // --- ระบบเกมที่ 1 ---
-    let g1DataList = [];
-    let g1CurrentSet = null;
-
+    // ---------- เกมที่ 1 ----------
     function startG1() {
-        isPlaying = true;
-        timer = 25 + (currentDiff * 5);
-        document.getElementById("g1-score").textContent = score;
-        document.getElementById("g1-timer").textContent = timer;
-        g1DataList = dbGame1[currentDiff];
+        $("g1-score").textContent = score;
         nextG1Round();
-
-        clearInterval(timerInterval);
-        timerInterval = setInterval(() => {
-            timer--;
-            document.getElementById("g1-timer").textContent = timer;
-            if (timer <= 0) gameOver();
-        }, 1000);
     }
 
     function nextG1Round() {
         if (!isPlaying) return;
 
-        g1CurrentSet = g1DataList[Math.floor(Math.random() * g1DataList.length)];
-        document.getElementById("g1-category").textContent =
-            "หมวดที่ต้องหา: " + g1CurrentSet.cat;
+        clearInterval(animationInterval);
+        questionLocked = false;
 
-        const isCorrectTurn = Math.random() >= 0.5;
-        let targetWord = "";
-        let currentIsCorrect = false;
+        const sets = dbGame1[currentDiff];
+        const set = sets[Math.floor(Math.random() * sets.length)];
 
-        if (isCorrectTurn) {
-            targetWord = g1CurrentSet.correct[
-                Math.floor(Math.random() * g1CurrentSet.correct.length)
-            ];
-            currentIsCorrect = true;
-        } else {
-            targetWord = g1CurrentSet.wrong[
-                Math.floor(Math.random() * g1CurrentSet.wrong.length)
-            ];
-            currentIsCorrect = false;
-        }
+        $("g1-category").textContent = "หมวดที่ต้องหา: " + set.cat;
 
-        const itemEl = document.getElementById("g1-item");
-        itemEl.textContent = targetWord;
-        itemEl.style.right = "-50px";
+        const isCorrect = Math.random() < 0.5;
+        const wordList = isCorrect ? set.correct : set.wrong;
+        const word = wordList[Math.floor(Math.random() * wordList.length)];
 
-        let pos = -50;
-        const anim = setInterval(() => {
-            if (!isPlaying) {
-                clearInterval(anim);
+        const item = $("g1-item");
+        item.textContent = word;
+        item.style.right = "-50px";
+
+        const choices = $("g1-choices");
+        choices.innerHTML = "";
+
+        const yesButton = document.createElement("button");
+        yesButton.className = "btn btn-green";
+        yesButton.textContent = "✔️ ใช่ ตรงหมวด";
+        yesButton.onclick = () => endQuestion(isCorrect ? 10 : -5);
+
+        const noButton = document.createElement("button");
+        noButton.className = "btn";
+        noButton.textContent = "❌ ไม่ใช่";
+        noButton.onclick = () => endQuestion(isCorrect ? -5 : 10);
+
+        choices.append(yesButton, noButton);
+
+        let position = -50;
+        animationInterval = setInterval(() => {
+            if (!isPlaying || questionLocked) {
+                clearInterval(animationInterval);
                 return;
             }
 
-            pos += 4;
-            itemEl.style.right = pos + "px";
+            position += 5;
+            item.style.right = position + "px";
 
-            if (pos > 250) {
-                clearInterval(anim);
-                nextG1Round();
+            // หากปล่อยให้คำวิ่งผ่านไป ให้นับเป็นข้อที่พลาด
+            if (position >= 300) {
+                clearInterval(animationInterval);
+                endQuestion(-5);
             }
         }, 50);
-
-        const choicesDiv = document.getElementById("g1-choices");
-        choicesDiv.innerHTML = `
-            <button class="btn btn-green"
-                onclick="answerG1(true, ${currentIsCorrect}, ${anim})">
-                ✔️ ใช่ (ตรงหมวด)
-            </button>
-            <button class="btn"
-                onclick="answerG1(false, ${currentIsCorrect}, ${anim})">
-                ❌ ไม่ใช่
-            </button>
-        `;
     }
 
-    function answerG1(userAns, actualAns, anim) {
-        clearInterval(anim);
+    // ---------- เกมที่ 2 และ 3 ----------
+    let g2List = [];
+    let g3List = [];
 
-        if (!isPlaying) return;
+    function shuffledCopy(list) {
+        return [...list].sort(() => Math.random() - 0.5);
+    }
 
-        if (userAns === actualAns) {
-            score += 10;
-        } else {
-            score = Math.max(0, score - 5);
+    function drawQuestion(listName, source) {
+        let list = listName === "g2" ? g2List : g3List;
+
+        if (list.length === 0) {
+            list = shuffledCopy(source);
         }
 
-        document.getElementById("g1-score").textContent = score;
-        nextG1Round();
+        const question = list.pop();
+
+        if (listName === "g2") g2List = list;
+        else g3List = list;
+
+        return question;
     }
 
-    // --- ระบบเกมที่ 2 ---
-    let g2List = [];
-
     function startG2() {
-        isPlaying = true;
-        timer = 20 + (currentDiff * 5);
-        document.getElementById("g2-score").textContent = score;
-        document.getElementById("g2-timer").textContent = timer;
-        g2List = [...dbGame2[currentDiff]];
+        $("g2-score").textContent = score;
+        g2List = [];
         nextG2Round();
-
-        clearInterval(timerInterval);
-        timerInterval = setInterval(() => {
-            timer--;
-            document.getElementById("g2-timer").textContent = timer;
-            if (timer <= 0) gameOver();
-        }, 1000);
     }
 
     function nextG2Round() {
         if (!isPlaying) return;
-        if (g2List.length === 0) g2List = [...dbGame2[currentDiff]];
 
-        const qObj = g2List.pop();
-        document.getElementById("g2-word").textContent = qObj.q;
-        document.getElementById("g2-sub").textContent = qObj.sub;
+        questionLocked = false;
+        const q = drawQuestion("g2", dbGame2[currentDiff]);
 
-        const shuffledChoices = [...qObj.choices].sort(() => Math.random() - 0.5);
-        const choicesDiv = document.getElementById("g2-choices");
-        choicesDiv.innerHTML = "";
+        $("g2-word").textContent = q.q;
+        $("g2-sub").textContent = q.sub;
 
-        shuffledChoices.forEach(choice => {
-            const btn = document.createElement("button");
-            btn.className = "btn btn-blue";
-            btn.textContent = choice;
-            btn.onclick = () => {
-                if (!isPlaying) return;
-
-                if (choice === qObj.ans) {
-                    score += 15;
-                } else {
-                    score = Math.max(0, score - 5);
-                }
-
-                document.getElementById("g2-score").textContent = score;
-                nextG2Round();
-            };
-            choicesDiv.appendChild(btn);
+        renderChoices("g2-choices", q.choices, "btn btn-blue", choice => {
+            endQuestion(choice === q.ans ? 15 : -5);
         });
     }
 
-    // --- ระบบเกมที่ 3 ---
-    let g3List = [];
-
     function startG3() {
-        isPlaying = true;
-        timer = 20 + (currentDiff * 5);
-        document.getElementById("g3-score").textContent = score;
-        document.getElementById("g3-timer").textContent = timer;
-        g3List = [...dbGame3[currentDiff]];
+        $("g3-score").textContent = score;
+        g3List = [];
         nextG3Round();
-
-        clearInterval(timerInterval);
-        timerInterval = setInterval(() => {
-            timer--;
-            document.getElementById("g3-timer").textContent = timer;
-            if (timer <= 0) gameOver();
-        }, 1000);
     }
 
     function nextG3Round() {
         if (!isPlaying) return;
-        if (g3List.length === 0) g3List = [...dbGame3[currentDiff]];
 
-        const qObj = g3List.pop();
-        document.getElementById("g3-question").textContent = qObj.q;
+        questionLocked = false;
+        const q = drawQuestion("g3", dbGame3[currentDiff]);
 
-        const shuffledChoices = [...qObj.choices].sort(() => Math.random() - 0.5);
-        const choicesDiv = document.getElementById("g3-choices");
-        choicesDiv.innerHTML = "";
+        $("g3-question").textContent = q.q;
 
-        shuffledChoices.forEach(choice => {
-            const btn = document.createElement("button");
-            btn.className = "btn btn-warning";
-            btn.textContent = choice;
-            btn.onclick = () => {
-                if (!isPlaying) return;
+        renderChoices("g3-choices", q.choices, "btn btn-warning", choice => {
+            endQuestion(choice === q.ans ? 20 : -5);
+        });
+    }
 
-                if (choice === qObj.ans) {
-                    score += 20;
-                } else {
-                    score = Math.max(0, score - 5);
-                }
+    function renderChoices(containerId, choices, buttonClass, onChoose) {
+        const container = $(containerId);
+        container.innerHTML = "";
 
-                document.getElementById("g3-score").textContent = score;
-                nextG3Round();
+        shuffledCopy(choices).forEach(choice => {
+            const button = document.createElement("button");
+            button.className = buttonClass;
+            button.textContent = choice;
+            button.onclick = () => {
+                if (!isPlaying || questionLocked) return;
+                onChoose(choice);
             };
-            choicesDiv.appendChild(btn);
+            container.appendChild(button);
         });
     }
 </script>
