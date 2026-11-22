@@ -283,6 +283,7 @@
     </div>
 </div>
 
+<!-- สคริปต์เกมหลัก -->
 <script>
     let currentMode = 1;
     let currentDiff = 1;
@@ -390,6 +391,11 @@
         document.getElementById("game-3").classList.add("hidden");
         document.getElementById("screen-gameover").classList.remove("hidden");
         document.getElementById("final-coins").textContent = score;
+
+        // ⭐ เรียกฟังก์ชันบันทึกคะแนนลง Firebase
+        if (typeof saveThaiScore === 'function') {
+            saveThaiScore(score);
+        }
     }
 
     // --- ระบบเกมที่ 1 ---
@@ -584,10 +590,66 @@
         });
     }
 </script>
-<!-- Firebase SDK + ตัวกลาง -->
+
+<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="arcade-firebase.js"></script>
+
+<!-- ระบบเชื่อมต่อฐานข้อมูลสำหรับเกมภาษาไทย -->
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyAGu__RjEy0WRI7hYDdKfai9vio8GqWoqw",
+        authDomain: "skilldragonyok.firebaseapp.com",
+        projectId: "skilldragonyok",
+        storageBucket: "skilldragonyok.firebasestorage.app",
+        messagingSenderId: "894981973450",
+        appId: "1:894981973450:web:39d6f4c2170e774c1d1b33"
+    };
+
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.firestore();
+
+    // ⭐ ฟังก์ชันบันทึกคะแนนเกมภาษาไทย
+    async function saveThaiScore(finalScore) {
+        const user = firebase.auth().currentUser;
+        
+        if (!user) {
+            console.warn("ผู้เล่นยังไม่ได้เข้าสู่ระบบ จึงไม่บันทึกคะแนน");
+            return;
+        }
+        
+        // ถ้าเล่นได้ 0 คะแนน ไม่ต้องบันทึก
+        if (finalScore <= 0) return;
+
+        const gameId = 'thai'; // ID ต้องตรงกับใน index.html
+        const userRef = db.collection('users').doc(user.uid);
+
+        try {
+            await db.runTransaction(async (transaction) => {
+                const doc = await transaction.get(userRef);
+                if (!doc.exists) return;
+
+                const games = doc.data().games || {};
+                const cur = games[gameId] || { total: 0, best: 0, plays: 0 };
+
+                transaction.update(userRef, {
+                    totalScore: firebase.firestore.FieldValue.increment(finalScore),
+                    [`games.${gameId}`]: {
+                        total: (cur.total || 0) + finalScore,
+                        best: Math.max(cur.best || 0, finalScore),
+                        plays: (cur.plays || 0) + 1,
+                        lastPlayed: new Date()
+                    }
+                });
+            });
+            console.log(`✅ บันทึกคะแนนเกม Thai สำเร็จ: ${finalScore}`);
+        } catch (error) {
+            console.error("❌ บันทึกคะแนนล้มเหลว:", error);
+        }
+    }
+</script>
 </body>
 </html>

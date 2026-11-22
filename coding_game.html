@@ -9,7 +9,7 @@
 <body>
     <div class="game-container">
         <!-- ปุ่มกลับหน้าหลัก -->
-        <button class="home-btn" onclick="goToHome()">🏠 หน้าแรก</button>
+        <a href="index.html" class="home-btn" style="text-decoration: none; display: inline-block; margin-bottom: 20px; padding: 8px 16px; background: #e43f5a; color: white; border-radius: 8px; font-weight: bold;">🏠 กลับหน้าหลัก</a>
 
         <h1>🤖 ผจญภัยเมืองสมองกล</h1>
         
@@ -30,17 +30,70 @@
                 <button onclick="movePlayer('RIGHT')">ขวา ➡️</button>
             </div>
             <button onclick="movePlayer('DOWN')">⬇️ เดินลง</button>
-        </div>    <!-- ปุ่มกลับหน้าหลัก -->
-<a href="index.html" class="back-home-btn" title="กลับหน้าเมนูหลัก">
-    🏠 กลับหน้าหลัก
-</a>    
+        </div>
+
         <button class="reset-btn" onclick="resetGame()">🔄 เริ่มด่านนี้ใหม่</button>
     </div>
+    
+    <!-- สคริปต์เกมหลักของคุณ -->
     <script src="script.js"></script>
-    <!-- Firebase SDK + ตัวกลาง -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="arcade-firebase.js"></script>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+    <!-- ระบบเชื่อมต่อฐานข้อมูลสำหรับเกมนี้ -->
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAGu__RjEy0WRI7hYDdKfai9vio8GqWoqw",
+            authDomain: "skilldragonyok.firebaseapp.com",
+            projectId: "skilldragonyok",
+            storageBucket: "skilldragonyok.firebasestorage.app",
+            messagingSenderId: "894981973450",
+            appId: "1:894981973450:web:39d6f4c2170e774c1d1b33"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+
+        // ⭐ ฟังก์ชันสำหรับบันทึกคะแนน (เรียกใช้จาก script.js)
+        async function saveCodingScore(finalScore) {
+            const user = firebase.auth().currentUser;
+            
+            if (!user) {
+                console.warn("ผู้เล่นยังไม่ได้เข้าสู่ระบบ จึงไม่บันทึกคะแนน");
+                return;
+            }
+
+            const gameId = 'coding'; // ต้องตรงกับ ID ในหน้า index.html
+            const userRef = db.collection('users').doc(user.uid);
+
+            try {
+                await db.runTransaction(async (transaction) => {
+                    const doc = await transaction.get(userRef);
+                    if (!doc.exists) return;
+
+                    const games = doc.data().games || {};
+                    const cur = games[gameId] || { total: 0, best: 0, plays: 0 };
+
+                    transaction.update(userRef, {
+                        totalScore: firebase.firestore.FieldValue.increment(finalScore),
+                        [`games.${gameId}`]: {
+                            total: (cur.total || 0) + finalScore,
+                            best: Math.max(cur.best || 0, finalScore),
+                            plays: (cur.plays || 0) + 1,
+                            lastPlayed: new Date()
+                        }
+                    });
+                });
+                console.log(`✅ บันทึกคะแนนเกม Coding สำเร็จ: ${finalScore}`);
+            } catch (error) {
+                console.error("❌ บันทึกคะแนนล้มเหลว:", error);
+            }
+        }
+    </script>
 </body>
 </html>

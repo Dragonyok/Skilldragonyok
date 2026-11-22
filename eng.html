@@ -14,9 +14,7 @@
             --accent: #f59e0b;
         }
 
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -46,9 +44,7 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
         }
 
-        .back-home-btn:hover {
-            background: #f1f5f9;
-        }
+        .back-home-btn:hover { background: #f1f5f9; }
 
         .container {
             width: 100%;
@@ -60,18 +56,10 @@
             text-align: center;
         }
 
-        h1 {
-            color: var(--primary);
-            margin-bottom: 10px;
-        }
+        h1 { color: var(--primary); margin-bottom: 10px; }
 
-        .screen {
-            display: none;
-        }
-
-        .screen.active {
-            display: block;
-        }
+        .screen { display: none; }
+        .screen.active { display: block; }
 
         button {
             background-color: var(--primary);
@@ -86,18 +74,9 @@
             font-weight: bold;
         }
 
-        button:hover {
-            background-color: var(--primary-hover);
-            transform: translateY(-2px);
-        }
-
-        .btn-secondary {
-            background-color: #6b7280;
-        }
-
-        .btn-secondary:hover {
-            background-color: #4b5563;
-        }
+        button:hover { background-color: var(--primary-hover); transform: translateY(-2px); }
+        .btn-secondary { background-color: #6b7280; }
+        .btn-secondary:hover { background-color: #4b5563; }
 
         .option-btn {
             display: block;
@@ -114,10 +93,7 @@
             transition: all 0.2s;
         }
 
-        .option-btn:hover {
-            background: var(--primary);
-            color: white;
-        }
+        .option-btn:hover { background: var(--primary); color: white; }
 
         .stats-bar {
             display: flex;
@@ -146,23 +122,12 @@
             transition: width 1s linear;
         }
 
-        .coin-badge {
-            color: var(--accent);
-        }
+        .coin-badge { color: var(--accent); }
 
         @media (max-width: 480px) {
-            .container {
-                padding: 22px 16px;
-            }
-
-            .stats-bar {
-                padding: 10px 12px;
-                font-size: 14px;
-            }
-
-            h1 {
-                font-size: 24px;
-            }
+            .container { padding: 22px 16px; }
+            .stats-bar { padding: 10px 12px; font-size: 14px; }
+            h1 { font-size: 24px; }
         }
     </style>
 </head>
@@ -210,6 +175,7 @@
     </div>
 </div>
 
+<!-- สคริปต์เกมหลัก -->
 <script>
     const questionsData = {
         easy: [
@@ -244,7 +210,6 @@
 
     function startGame(level) {
         clearInterval(timer);
-
         currentLevel = level;
         currentQuestions = [...questionsData[level]];
         currentIndex = 0;
@@ -259,7 +224,6 @@
 
     function loadQuestion() {
         clearInterval(timer);
-
         if (currentIndex >= currentQuestions.length) {
             endGame();
             return;
@@ -304,11 +268,9 @@
 
     function checkAnswer(selected, correct) {
         clearInterval(timer);
-
         if (selected === correct) {
             score += 10 + (timeLeft * 2);
         }
-
         currentIndex++;
         loadQuestion();
     }
@@ -317,6 +279,11 @@
         document.getElementById("game-screen").classList.remove("active");
         document.getElementById("result-screen").classList.add("active");
         document.getElementById("final-score").innerText = score;
+
+        // ⭐ เรียกฟังก์ชันบันทึกคะแนนลง Firebase
+        if (typeof saveEnglishScore === 'function') {
+            saveEnglishScore(score);
+        }
     }
 
     function goHome() {
@@ -326,10 +293,66 @@
         document.getElementById("home-screen").classList.add("active");
     }
 </script>
-<!-- Firebase SDK + ตัวกลาง -->
+
+<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="arcade-firebase.js"></script>
+
+<!-- ระบบเชื่อมต่อฐานข้อมูลสำหรับเกมภาษาอังกฤษ -->
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyAGu__RjEy0WRI7hYDdKfai9vio8GqWoqw",
+        authDomain: "skilldragonyok.firebaseapp.com",
+        projectId: "skilldragonyok",
+        storageBucket: "skilldragonyok.firebasestorage.app",
+        messagingSenderId: "894981973450",
+        appId: "1:894981973450:web:39d6f4c2170e774c1d1b33"
+    };
+
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.firestore();
+
+    // ⭐ ฟังก์ชันบันทึกคะแนนเกมภาษาอังกฤษ
+    async function saveEnglishScore(finalScore) {
+        const user = firebase.auth().currentUser;
+        
+        if (!user) {
+            console.warn("ผู้เล่นยังไม่ได้เข้าสู่ระบบ จึงไม่บันทึกคะแนน");
+            return;
+        }
+        
+        // ถ้าเล่นได้ 0 คะแนน ไม่ต้องบันทึกก็ได้ (หรือจะลบเงื่อนไขนี้ออกก็ได้ครับ)
+        if (finalScore <= 0) return;
+
+        const gameId = 'english'; // ID ต้องตรงกับใน index.html
+        const userRef = db.collection('users').doc(user.uid);
+
+        try {
+            await db.runTransaction(async (transaction) => {
+                const doc = await transaction.get(userRef);
+                if (!doc.exists) return;
+
+                const games = doc.data().games || {};
+                const cur = games[gameId] || { total: 0, best: 0, plays: 0 };
+
+                transaction.update(userRef, {
+                    totalScore: firebase.firestore.FieldValue.increment(finalScore),
+                    [`games.${gameId}`]: {
+                        total: (cur.total || 0) + finalScore,
+                        best: Math.max(cur.best || 0, finalScore),
+                        plays: (cur.plays || 0) + 1,
+                        lastPlayed: new Date()
+                    }
+                });
+            });
+            console.log(`✅ บันทึกคะแนนเกม English สำเร็จ: ${finalScore}`);
+        } catch (error) {
+            console.error("❌ บันทึกคะแนนล้มเหลว:", error);
+        }
+    }
+</script>
 </body>
 </html>

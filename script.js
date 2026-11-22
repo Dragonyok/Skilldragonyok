@@ -5,6 +5,7 @@ let playerPos = { x: 0, y: 0 };
 let goalPos = { x: 3, y: 3 };
 let obstacles = [];
 let coins = [];
+let levelCleared = false; // ⭐ ตัวแปรสำหรับเช็คว่าด่านนี้บันทึกคะแนนไปหรือยัง
 
 // ข้อมูล 10 ด่าน
 const levelsData = {
@@ -58,6 +59,8 @@ function changeLevel(lvl) {
     goalPos = { ...data.goal };
     obstacles = data.obstacles.map(o => ({ ...o }));
     coins = data.coins.map(c => ({ ...c, collected: false }));
+    
+    levelCleared = false; // ⭐ รีเซ็ตสถานะการผ่านด่านเมื่อเปลี่ยนด่าน
 
     renderLevelButtons();
     resetGame();
@@ -98,6 +101,9 @@ function isObstacle(x, y) {
 }
 
 function movePlayer(direction) {
+    // ถ้าผ่านด่านนี้ไปแล้ว ไม่ต้องให้เดินต่อ (หรือจะปล่อยให้เดินเล่นก็ได้)
+    // if (levelCleared) return; 
+
     let newX = playerPos.x;
     let newY = playerPos.y;
 
@@ -138,9 +144,21 @@ function checkWin() {
 
     if (playerPos.x === goalPos.x && playerPos.y === goalPos.y) {
         if (allCoinsCollected) {
-            status.innerHTML = `🎉 ยอดเยี่ยม! ผ่านด่าน ${currentLevel} แล้ว!`;
-            status.style.color = 'green';
+            if (!levelCleared) {
+                // ⭐ ทำงานเมื่อผ่านด่านครั้งแรกของรอบนั้น
+                levelCleared = true;
+                status.innerHTML = `🎉 ยอดเยี่ยม! ผ่านด่าน ${currentLevel} แล้ว!`;
+                status.style.color = 'green';
 
+                // ⭐ คำนวณคะแนนและส่งไปบันทึกที่ Firebase
+                // สมมติว่า 1 เหรียญ = 10 คะแนน
+                const earnedScore = coins.length * 10; 
+                if (typeof saveCodingScore === 'function') {
+                    saveCodingScore(earnedScore);
+                }
+            }
+
+            // ปลดล็อกด่านถัดไป
             if (currentLevel === unlockedLevel && unlockedLevel < 10) {
                 unlockedLevel++;
                 renderLevelButtons();
@@ -155,6 +173,8 @@ function checkWin() {
 function resetGame() {
     playerPos = { x: 0, y: 0 };
     coins.forEach(c => c.collected = false);
+    levelCleared = false; // ⭐ รีเซ็ตสถานะเมื่อเริ่มด่านใหม่
+    
     document.getElementById('status').innerHTML = `สถานะ: กำลังลุยด่านที่ ${currentLevel}`;
     document.getElementById('status').style.color = '#333';
     initBoard();

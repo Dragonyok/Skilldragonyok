@@ -171,7 +171,7 @@
 </a>
 
 <div class="game-container">
-    <h1>🤖 ถอดรหัสเมืองสมองกล</h1>
+    <h1>🔢 เกมคณิตคิดเร็ว</h1>
     <div class="subtitle">เกมฝึกคิดเลขสนุกๆ สำหรับเด็กๆ</div>
 
     <!-- หน้าเลือกช่วงอายุ -->
@@ -202,6 +202,7 @@
     </div>
 </div>
 
+<!-- สคริปต์เกมหลัก -->
 <script>
     let score = 0;
     let timeLeft = 40;
@@ -326,6 +327,11 @@
             `ทำคะแนนได้ <b>${score}</b> คะแนน<br><br>` +
             `<button onclick="startGame()">เล่นรอบนี้อีกครั้ง 🔄</button>` +
             `<button class="btn-back" onclick="goBackToSetup()">⬅️ กลับไปหน้าเลือกอายุ</button>`;
+
+        // ⭐ เรียกฟังก์ชันบันทึกคะแนนลง Firebase
+        if (typeof saveMathScore === 'function') {
+            saveMathScore(score);
+        }
     }
 
     function goBackToSetup() {
@@ -341,10 +347,66 @@
         }
     });
 </script>
-<!-- Firebase SDK + ตัวกลาง -->
+
+<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="arcade-firebase.js"></script>
+
+<!-- ระบบเชื่อมต่อฐานข้อมูลสำหรับเกมคณิตศาสตร์ -->
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyAGu__RjEy0WRI7hYDdKfai9vio8GqWoqw",
+        authDomain: "skilldragonyok.firebaseapp.com",
+        projectId: "skilldragonyok",
+        storageBucket: "skilldragonyok.firebasestorage.app",
+        messagingSenderId: "894981973450",
+        appId: "1:894981973450:web:39d6f4c2170e774c1d1b33"
+    };
+
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.firestore();
+
+    // ⭐ ฟังก์ชันบันทึกคะแนนเกมคณิตศาสตร์
+    async function saveMathScore(finalScore) {
+        const user = firebase.auth().currentUser;
+        
+        if (!user) {
+            console.warn("ผู้เล่นยังไม่ได้เข้าสู่ระบบ จึงไม่บันทึกคะแนน");
+            return;
+        }
+        
+        // ถ้าเล่นได้ 0 คะแนน ไม่ต้องบันทึก
+        if (finalScore <= 0) return;
+
+        const gameId = 'math'; // ID ต้องตรงกับใน index.html
+        const userRef = db.collection('users').doc(user.uid);
+
+        try {
+            await db.runTransaction(async (transaction) => {
+                const doc = await transaction.get(userRef);
+                if (!doc.exists) return;
+
+                const games = doc.data().games || {};
+                const cur = games[gameId] || { total: 0, best: 0, plays: 0 };
+
+                transaction.update(userRef, {
+                    totalScore: firebase.firestore.FieldValue.increment(finalScore),
+                    [`games.${gameId}`]: {
+                        total: (cur.total || 0) + finalScore,
+                        best: Math.max(cur.best || 0, finalScore),
+                        plays: (cur.plays || 0) + 1,
+                        lastPlayed: new Date()
+                    }
+                });
+            });
+            console.log(`✅ บันทึกคะแนนเกม Math สำเร็จ: ${finalScore}`);
+        } catch (error) {
+            console.error("❌ บันทึกคะแนนล้มเหลว:", error);
+        }
+    }
+</script>
 </body>
 </html>
