@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ภารกิจหุ่นยนต์ตามล่าเหรียญ</title>
+
   <style>
     :root {
       color-scheme: dark;
@@ -12,7 +13,9 @@
       color: #f5f8ff;
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
     body {
       margin: 0;
@@ -21,7 +24,9 @@
       background: linear-gradient(150deg, #203d63, #102846 70%);
     }
 
-    button, a { font: inherit; }
+    button, a {
+      font: inherit;
+    }
 
     .page {
       width: min(850px, 100%);
@@ -48,6 +53,7 @@
       border-radius: 999px;
       color: #ffd15c;
       font-weight: 700;
+      white-space: nowrap;
     }
 
     h1 {
@@ -102,6 +108,7 @@
       gap: 4px;
       touch-action: manipulation;
       user-select: none;
+      -webkit-user-select: none;
     }
 
     .tile {
@@ -120,9 +127,68 @@
       box-shadow: inset 0 -4px 0 #23384e;
     }
 
-    .tile.path { background: #cce5e7; }
-    .tile.exit { background: #ffd15c; }
-    .tile.robot { background: #9bd8ff; }
+    .tile.path {
+      background: #cce5e7;
+    }
+
+    .tile.exit {
+      background: #ffd15c;
+    }
+
+    .tile.robot {
+      background: #9bd8ff;
+    }
+
+    /* ปุ่มลูกศรบนหน้าจอ */
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(3, 68px);
+      grid-template-rows: repeat(2, 60px);
+      justify-content: center;
+      gap: 8px;
+      margin: 18px auto 0;
+    }
+
+    .control {
+      display: grid;
+      place-items: center;
+      border: 2px solid #6382a2;
+      border-radius: 14px;
+      background: #203f61;
+      color: white;
+      font-size: 27px;
+      font-weight: 800;
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .control:active {
+      background: #ff5369;
+      transform: scale(.96);
+    }
+
+    .control[data-dir="up"] {
+      grid-column: 2;
+      grid-row: 1;
+    }
+
+    .control[data-dir="left"] {
+      grid-column: 1;
+      grid-row: 2;
+    }
+
+    .control[data-dir="down"] {
+      grid-column: 2;
+      grid-row: 2;
+    }
+
+    .control[data-dir="right"] {
+      grid-column: 3;
+      grid-row: 2;
+    }
 
     .actions {
       display: flex;
@@ -133,6 +199,7 @@
     }
 
     .action-button {
+      min-height: 46px;
       border: 0;
       border-radius: 12px;
       padding: 11px 16px;
@@ -140,6 +207,7 @@
       color: white;
       font-weight: 800;
       cursor: pointer;
+      touch-action: manipulation;
     }
 
     .action-button.secondary {
@@ -152,31 +220,6 @@
       cursor: not-allowed;
     }
 
-    .controls {
-      display: grid;
-      grid-template-columns: repeat(3, 58px);
-      grid-template-rows: repeat(2, 52px);
-      justify-content: center;
-      gap: 7px;
-      margin: 18px auto 0;
-    }
-
-    .control {
-      border: 1px solid #6382a2;
-      border-radius: 12px;
-      background: #203f61;
-      color: white;
-      font-size: 22px;
-      font-weight: 800;
-      cursor: pointer;
-      touch-action: manipulation;
-    }
-
-    .control[data-dir="up"] { grid-column: 2; grid-row: 1; }
-    .control[data-dir="left"] { grid-column: 1; grid-row: 2; }
-    .control[data-dir="down"] { grid-column: 2; grid-row: 2; }
-    .control[data-dir="right"] { grid-column: 3; grid-row: 2; }
-
     .help {
       margin: 18px auto 0;
       max-width: 600px;
@@ -186,13 +229,31 @@
     }
 
     @media (max-width: 480px) {
-      body { padding: 16px 10px 28px; }
-      .panel { padding: 12px 8px; }
-      #board { gap: 3px; }
-      .tile { border-radius: 5px; }
+      body {
+        padding: 16px 10px 28px;
+      }
+
+      .panel {
+        padding: 12px 8px;
+      }
+
+      #board {
+        gap: 3px;
+      }
+
+      .tile {
+        border-radius: 5px;
+        font-size: clamp(16px, 6vw, 26px);
+      }
+
+      .controls {
+        grid-template-columns: repeat(3, 64px);
+        grid-template-rows: repeat(2, 58px);
+      }
     }
   </style>
 </head>
+
 <body>
   <main class="page">
     <header>
@@ -210,30 +271,39 @@
         <span class="badge">👣 ก้าว <span id="steps">0</span></span>
       </div>
 
-      <div id="message" role="status">ใช้ปุ่มลูกศร หรือปุ่มบนหน้าจอเพื่อเดิน</div>
-      <div id="board" aria-label="กระดานเขาวงกต"></div>
-
-      <div class="actions">
-        <button class="action-button secondary" id="restartButton">เริ่มด่านใหม่</button>
-        <button class="action-button" id="nextButton" disabled>ด่านถัดไป</button>
+      <div id="message" role="status" aria-live="polite">
+        แตะปุ่มลูกศรเพื่อเดิน
       </div>
 
+      <div id="board" aria-label="กระดานเขาวงกต"></div>
+
       <div class="controls" aria-label="ปุ่มบังคับทิศทาง">
-        <button class="control" data-dir="up" aria-label="ขึ้น">↑</button>
-        <button class="control" data-dir="left" aria-label="ซ้าย">←</button>
-        <button class="control" data-dir="down" aria-label="ลง">↓</button>
-        <button class="control" data-dir="right" aria-label="ขวา">→</button>
+        <button class="control" type="button" data-dir="up" aria-label="ขึ้น">↑</button>
+        <button class="control" type="button" data-dir="left" aria-label="ซ้าย">←</button>
+        <button class="control" type="button" data-dir="down" aria-label="ลง">↓</button>
+        <button class="control" type="button" data-dir="right" aria-label="ขวา">→</button>
+      </div>
+
+      <div class="actions">
+        <button class="action-button secondary" type="button" id="restartButton">
+          เริ่มด่านใหม่
+        </button>
+        <button class="action-button" type="button" id="nextButton" disabled>
+          ด่านถัดไป
+        </button>
       </div>
 
       <p class="help">
         คอมพิวเตอร์: ใช้ปุ่มลูกศรหรือ W A S D<br>
-        มือถือ: แตะปุ่มลูกศรบนหน้าจอ<br>
+        มือถือและ iPad: แตะปุ่มลูกศรด้านบน<br>
         เก็บเหรียญให้ครบก่อน จึงจะออกจากด่านได้
       </p>
     </section>
   </main>
 
   <script>
+    "use strict";
+
     const levels = [
       {
         name: "ด่าน 1: ฝึกขับหุ่นยนต์",
@@ -254,9 +324,9 @@
         map: [
           "########",
           "#S..#..#",
-          "#.#.#C.#",
-          "#.#....#",
-          "#C.##.##",
+          "#...#C.#",
+          "#......#",
+          "#C.##..#",
           "#...#..#",
           "##..C.E#",
           "########"
@@ -308,8 +378,18 @@
       }
     ];
 
-    const saved = JSON.parse(localStorage.getItem("robotMazeSave") || "{}");
-    let totalScore = Number(saved.score) || 0;
+    const SAVE_KEY = "robotMazeSave";
+
+    function readSavedScore() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(SAVE_KEY) || "{}");
+        return Number(saved.score) || 0;
+      } catch (error) {
+        return 0;
+      }
+    }
+
+    let totalScore = readSavedScore();
     let levelIndex = 0;
     let player = { row: 0, col: 0 };
     let exit = { row: 0, col: 0 };
@@ -324,40 +404,53 @@
     const nextButton = document.getElementById("nextButton");
 
     function saveScore() {
-      localStorage.setItem("robotMazeSave", JSON.stringify({ score: totalScore }));
       document.getElementById("score").textContent = totalScore;
+
+      try {
+        localStorage.setItem(SAVE_KEY, JSON.stringify({ score: totalScore }));
+      } catch (error) {
+        // เกมยังเล่นได้ แม้เบราว์เซอร์จะปิดการบันทึกข้อมูลไว้
+      }
     }
 
-    function key(row, col) {
+    function cellKey(row, col) {
       return `${row},${col}`;
     }
 
     function loadLevel() {
       const level = levels[levelIndex];
+
       walls = new Set();
       coins = new Set();
       steps = 0;
       won = false;
       nextButton.disabled = true;
+      nextButton.textContent = "ด่านถัดไป";
 
       level.map.forEach((line, row) => {
         [...line].forEach((cell, col) => {
-          if (cell === "S") player = { row, col };
-          if (cell === "E") exit = { row, col };
-          if (cell === "#") walls.add(key(row, col));
-          if (cell === "C") coins.add(key(row, col));
+          if (cell === "S") {
+            player = { row, col };
+          } else if (cell === "E") {
+            exit = { row, col };
+          } else if (cell === "#") {
+            walls.add(cellKey(row, col));
+          } else if (cell === "C") {
+            coins.add(cellKey(row, col));
+          }
         });
       });
 
       initialCoinCount = coins.size;
       document.getElementById("levelLabel").textContent = level.name;
-      message.textContent = "ใช้ปุ่มลูกศร หรือปุ่มบนหน้าจอเพื่อเดิน";
+      message.textContent = "แตะปุ่มลูกศรเพื่อเดิน";
       render();
     }
 
     function render() {
       const map = levels[levelIndex].map;
       const width = map[0].length;
+
       board.style.gridTemplateColumns = `repeat(${width}, 1fr)`;
       board.innerHTML = "";
 
@@ -372,14 +465,16 @@
             tile.classList.add("path");
           }
 
-          const spot = key(row, col);
+          const spot = cellKey(row, col);
 
           if (row === exit.row && col === exit.col) {
             tile.classList.add("exit");
             tile.textContent = "🚪";
           }
 
-          if (coins.has(spot)) tile.textContent = "🪙";
+          if (coins.has(spot)) {
+            tile.textContent = "🪙";
+          }
 
           if (row === player.row && col === player.col) {
             tile.classList.add("robot");
@@ -392,6 +487,7 @@
 
       document.getElementById("coinCount").textContent =
         `${initialCoinCount - coins.size}/${initialCoinCount}`;
+
       document.getElementById("steps").textContent = steps;
       saveScore();
     }
@@ -399,24 +495,36 @@
     function move(direction) {
       if (won) return;
 
-      const delta = {
+      const deltas = {
         up: [-1, 0],
         down: [1, 0],
         left: [0, -1],
         right: [0, 1]
-      }[direction];
+      };
 
+      const delta = deltas[direction];
       if (!delta) return;
 
       const nextRow = player.row + delta[0];
       const nextCol = player.col + delta[1];
+      const map = levels[levelIndex].map;
 
-      if (walls.has(key(nextRow, nextCol))) return;
+      // ป้องกันเดินออกนอกกระดานหรือชนกำแพง
+      if (
+        nextRow < 0 ||
+        nextRow >= map.length ||
+        nextCol < 0 ||
+        nextCol >= map[nextRow].length ||
+        walls.has(cellKey(nextRow, nextCol))
+      ) {
+        return;
+      }
 
       player = { row: nextRow, col: nextCol };
       steps++;
 
-      const spot = key(nextRow, nextCol);
+      const spot = cellKey(nextRow, nextCol);
+
       if (coins.has(spot)) {
         coins.delete(spot);
         message.textContent = "เก็บเหรียญได้แล้ว! ไปต่อเลย";
@@ -428,40 +536,58 @@
         if (coins.size === 0) {
           finishLevel();
         } else {
-          message.textContent = `เก็บเหรียญที่เหลืออีก ${coins.size} เหรียญก่อนนะ`;
+          message.textContent = `ยังเหลือเหรียญอีก ${coins.size} เหรียญ ไปเก็บก่อนนะ`;
         }
       }
     }
 
     function finishLevel() {
+      if (won) return;
+
       won = true;
+
       const bonus = Math.max(0, (levels[levelIndex].par - steps) * 2);
       const earned = initialCoinCount * 10 + 50 + bonus;
+
       totalScore += earned;
       saveScore();
 
       message.textContent = `ผ่านด่านแล้ว! ได้ ${earned} คะแนน ⭐`;
       nextButton.disabled = false;
       nextButton.textContent =
-        levelIndex === levels.length - 1 ? "กลับไปเล่นด่านแรก" : "ด่านถัดไป";
+        levelIndex === levels.length - 1
+          ? "กลับไปเล่นด่านแรก"
+          : "ด่านถัดไป";
     }
 
     document.addEventListener("keydown", event => {
       const keys = {
-        ArrowUp: "up", w: "up", W: "up",
-        ArrowDown: "down", s: "down", S: "down",
-        ArrowLeft: "left", a: "left", A: "left",
-        ArrowRight: "right", d: "right", D: "right"
+        ArrowUp: "up",
+        ArrowDown: "down",
+        ArrowLeft: "left",
+        ArrowRight: "right",
+        w: "up",
+        W: "up",
+        s: "down",
+        S: "down",
+        a: "left",
+        A: "left",
+        d: "right",
+        D: "right"
       };
 
-      if (keys[event.key]) {
+      const direction = keys[event.key];
+
+      if (direction) {
         event.preventDefault();
-        move(keys[event.key]);
+        move(direction);
       }
     });
 
     document.querySelectorAll(".control").forEach(button => {
-      button.addEventListener("click", () => move(button.dataset.dir));
+      button.addEventListener("click", () => {
+        move(button.dataset.dir);
+      });
     });
 
     document.getElementById("restartButton").addEventListener("click", loadLevel);
@@ -472,6 +598,7 @@
       } else {
         levelIndex = 0;
       }
+
       loadLevel();
     });
 

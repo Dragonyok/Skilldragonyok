@@ -13,12 +13,29 @@
     body {
       margin: 0;
       min-height: 100vh;
-      padding: 20px;
+      padding: 72px 20px 20px;
+      display: grid;
+      place-items: center;
       font-family: system-ui, sans-serif;
       color: #17324d;
       background: linear-gradient(#dff6ff, #f5fcff);
-      display: grid;
-      place-items: center;
+    }
+
+    .home-link {
+      position: fixed;
+      top: 14px;
+      left: 14px;
+      z-index: 10;
+      padding: 10px 16px;
+      border-radius: 12px;
+      color: white;
+      background: #718096;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .home-link:hover {
+      background: #526174;
     }
 
     .game {
@@ -68,8 +85,6 @@
       position: relative;
       min-height: 230px;
       overflow: hidden;
-      display: grid;
-      place-items: center;
       border: 6px solid #a9e5ed;
       border-radius: 22px;
       background:
@@ -100,6 +115,7 @@
       top: 50%;
       left: 8%;
       font-size: 5rem;
+      transform: translateY(-50%);
       filter: drop-shadow(0 5px 2px #064f6a55);
     }
 
@@ -110,12 +126,12 @@
     @keyframes swim {
       from {
         left: 8%;
-        transform: translateY(-10px) scaleX(1);
+        transform: translateY(calc(-50% - 10px)) scaleX(1);
         filter: hue-rotate(0deg) drop-shadow(0 5px 2px #064f6a55);
       }
       to {
         left: 72%;
-        transform: translateY(10px) scaleX(-1);
+        transform: translateY(calc(-50% + 10px)) scaleX(-1);
         filter: hue-rotate(240deg) drop-shadow(0 5px 2px #064f6a55);
       }
     }
@@ -129,7 +145,6 @@
 
     .progress {
       margin: 8px 0 16px;
-      font-size: 1rem;
     }
 
     button {
@@ -165,15 +180,6 @@
       background: #c8edf5;
     }
 
-    .home-button {
-      color: #fff;
-      background: #718096;
-    }
-
-    .home-button:hover {
-      background: #526174;
-    }
-
     .stars {
       margin-top: 12px;
       color: #e39a00;
@@ -187,7 +193,7 @@
 
     @media (max-width: 480px) {
       body {
-        padding: 12px;
+        padding: 70px 12px 12px;
       }
 
       .game {
@@ -197,13 +203,19 @@
       .pond {
         min-height: 200px;
       }
+
+      .fish {
+        font-size: 4rem;
+      }
     }
   </style>
 </head>
 
 <body>
+  <a class="home-link" href="index.html">🏠 หน้าแรก</a>
+
   <main class="game">
-    <a class="home-link" href="index.html">🏠 หน้าแรก</a>
+    <section id="homeScreen" class="home-screen">
       <h1>🎣 ตกปลาแสนสนุก</h1>
       <p class="intro">ฝึกสังเกตสีปลาและนับจำนวนไปด้วยกัน!</p>
       <div class="home-fish" aria-hidden="true">🐠</div>
@@ -228,7 +240,6 @@
 
       <button id="actionButton" type="button">หย่อนเบ็ด</button>
       <button class="secondary" id="restartButton" type="button">เริ่มใหม่</button>
-      <button class="home-button" id="homeButton" type="button">กลับหน้า Home</button>
 
       <div class="stars" id="stars">ดาวที่ได้: 0 ⭐</div>
     </section>
@@ -256,13 +267,17 @@
     let caughtCount = 0;
     let stars = 0;
     let isWaitingForFish = false;
-    let fishingTimer;
-    let missionTimer;
+    let canReelIn = false;
+    let fishingTimer = null;
+    let missionTimer = null;
 
     function newMission() {
       targetFish = fishTypes[Math.floor(Math.random() * fishTypes.length)];
       caughtCount = 0;
-      missionEl.textContent = `ภารกิจ: ตกปลา${targetFish.color}ให้ได้ 3 ตัว`;
+
+      missionEl.textContent =
+        `ภารกิจ: ตกปลา${targetFish.color}ให้ได้ 3 ตัว`;
+
       updateProgress();
     }
 
@@ -273,7 +288,10 @@
     function startGame() {
       homeScreen.hidden = true;
       gameScreen.hidden = false;
+
       newMission();
+
+      fishEl.textContent = "🐟";
       fishEl.classList.add("swimming");
       statusEl.textContent = "พร้อมแล้วหรือยัง? กดหย่อนเบ็ดได้เลย!";
       actionButton.disabled = false;
@@ -281,9 +299,12 @@
     }
 
     function castLine() {
+      if (isWaitingForFish || canReelIn) return;
+
       isWaitingForFish = true;
       fishEl.classList.remove("swimming");
       fishEl.textContent = "🎣";
+
       actionButton.disabled = true;
       actionButton.textContent = "รอปลากินเหยื่อ...";
       statusEl.textContent = "ค่อย ๆ รอนะ... ปลาอาจกำลังว่ายมา";
@@ -292,6 +313,8 @@
 
       fishingTimer = setTimeout(() => {
         isWaitingForFish = false;
+        canReelIn = true;
+
         fishEl.textContent = "❗";
         statusEl.textContent = "ปลากินเหยื่อแล้ว! รีบดึงเบ็ดเลย!";
         actionButton.disabled = false;
@@ -300,38 +323,44 @@
     }
 
     function reelIn() {
-      const caughtFish = fishTypes[Math.floor(Math.random() * fishTypes.length)];
+      if (!canReelIn) return;
+
+      canReelIn = false;
+
+      const caughtFish = fishTypes[
+        Math.floor(Math.random() * fishTypes.length)
+      ];
+
       fishEl.textContent = caughtFish.emoji;
 
       if (caughtFish.color === targetFish.color) {
         caughtCount++;
         statusEl.textContent = `เยี่ยมมาก! ได้ปลา${caughtFish.color} 🥳`;
         updateProgress();
-
-        if (caughtCount >= 3) {
-          stars++;
-          starsEl.textContent = `ดาวที่ได้: ${stars} ⭐`;
-          statusEl.textContent = "ทำภารกิจสำเร็จแล้ว เก่งมาก! ⭐";
-
-          fishEl.classList.add("swimming");
-          actionButton.disabled = true;
-          actionButton.textContent = "ภารกิจสำเร็จ!";
-
-          missionTimer = setTimeout(() => {
-            newMission();
-            statusEl.textContent = "ภารกิจใหม่มาแล้ว! ลุยกันต่อเลย";
-            actionButton.disabled = false;
-            actionButton.textContent = "หย่อนเบ็ด";
-          }, 1400);
-
-          return;
-        }
       } else {
         statusEl.textContent =
           `ได้ปลา${caughtFish.color} ลองสังเกตสีเป้าหมายอีกครั้งนะ 🙂`;
       }
 
       fishEl.classList.add("swimming");
+
+      if (caughtCount >= 3) {
+        stars++;
+        starsEl.textContent = `ดาวที่ได้: ${stars} ⭐`;
+        statusEl.textContent = "ทำภารกิจสำเร็จแล้ว เก่งมาก! ⭐";
+        actionButton.disabled = true;
+        actionButton.textContent = "ภารกิจสำเร็จ!";
+
+        missionTimer = setTimeout(() => {
+          newMission();
+          statusEl.textContent = "ภารกิจใหม่มาแล้ว! ลุยกันต่อเลย";
+          actionButton.disabled = false;
+          actionButton.textContent = "หย่อนเบ็ด";
+        }, 1400);
+
+        return;
+      }
+
       actionButton.disabled = false;
       actionButton.textContent = "หย่อนเบ็ด";
     }
@@ -343,6 +372,7 @@
       caughtCount = 0;
       stars = 0;
       isWaitingForFish = false;
+      canReelIn = false;
 
       starsEl.textContent = "ดาวที่ได้: 0 ⭐";
       fishEl.textContent = "🐟";
@@ -354,29 +384,21 @@
       newMission();
     }
 
-    function goHome() {
-      clearTimeout(fishingTimer);
-      clearTimeout(missionTimer);
+    document
+      .getElementById("startButton")
+      .addEventListener("click", startGame);
 
-      isWaitingForFish = false;
-      gameScreen.hidden = true;
-      homeScreen.hidden = false;
-      fishEl.classList.add("swimming");
-      actionButton.disabled = false;
-      actionButton.textContent = "หย่อนเบ็ด";
-    }
-
-    document.getElementById("startButton").addEventListener("click", startGame);
-    document.getElementById("homeButton").addEventListener("click", goHome);
-    document.getElementById("restartButton").addEventListener("click", resetGame);
+    document
+      .getElementById("restartButton")
+      .addEventListener("click", resetGame);
 
     actionButton.addEventListener("click", () => {
       if (isWaitingForFish) return;
 
-      if (actionButton.textContent === "หย่อนเบ็ด") {
-        castLine();
-      } else if (actionButton.textContent === "ดึงเบ็ด!") {
+      if (canReelIn) {
         reelIn();
+      } else {
+        castLine();
       }
     });
   </script>

@@ -2,70 +2,137 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#eaf6ff">
   <title>ซิ่งเก็บดาว</title>
+
   <style>
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       min-height: 100vh;
-      display: grid;
-      place-items: center;
-      padding: 16px;
+      min-height: 100dvh;
+      padding: 12px 12px calc(90px + env(safe-area-inset-bottom));
       background: #eaf6ff;
       color: #183153;
       font-family: system-ui, sans-serif;
     }
-    .game { width: min(100%, 420px); text-align: center; }
-    h1 { margin: 0 0 6px; font-size: 1.7rem; }
-    .help { margin: 0 0 12px; font-size: .95rem; }
+
+    .game {
+      width: min(100%, 420px);
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .game-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.25rem, 5vw, 1.7rem);
+    }
+
+    .home-btn {
+      flex: 0 0 auto;
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: #183153;
+      color: white;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: .9rem;
+    }
+
+    .home-btn:hover {
+      background: #294b73;
+    }
+
+    .help {
+      margin: 0 0 10px;
+      font-size: .92rem;
+    }
+
     .options {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 8px;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
       text-align: left;
     }
-    label { font-size: .85rem; font-weight: 700; }
-    select {
+
+    .options label {
+      font-size: .82rem;
+      font-weight: 700;
+    }
+
+    .options select {
       width: 100%;
       margin-top: 4px;
-      padding: 9px;
+      padding: 8px;
       border: 2px solid #b9d7ec;
       border-radius: 10px;
-      color: #183153;
       background: white;
+      color: #183153;
       font: inherit;
+      font-size: .9rem;
     }
-    .stage { position: relative; width: 100%; }
+
+    .stage {
+      position: relative;
+      width: 100%;
+    }
+
     canvas {
       display: block;
       width: 100%;
       height: auto;
       border: 4px solid #183153;
-      border-radius: 18px;
+      border-radius: 16px;
       background: #333;
       touch-action: none;
     }
+
     .overlay {
       position: absolute;
       inset: 0;
       display: grid;
       place-items: center;
-      padding: 24px;
-      border-radius: 18px;
-      background: #10243dcc;
+      padding: 18px;
+      border-radius: 16px;
+      background: rgba(16, 36, 61, .83);
       color: white;
+      z-index: 5;
     }
+
+    .overlay.hidden {
+      display: none;
+    }
+
     .panel {
-      max-width: 290px;
-      padding: 22px;
-      border-radius: 18px;
+      width: min(100%, 300px);
+      padding: 20px;
+      border-radius: 16px;
       background: white;
       color: #183153;
     }
-    .panel h2 { margin: 0 0 8px; }
-    .panel p { line-height: 1.5; }
+
+    .panel h2 {
+      margin: 0 0 8px;
+    }
+
+    .panel p {
+      line-height: 1.5;
+      margin: 0 0 14px;
+    }
+
     button {
       border: 0;
       border-radius: 14px;
@@ -76,27 +143,73 @@
       font-weight: 800;
       cursor: pointer;
       touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
     }
+
+    button:active {
+      transform: scale(.97);
+    }
+
     .controls {
+      position: fixed;
+      left: 50%;
+      bottom: calc(10px + env(safe-area-inset-bottom));
+      z-index: 20;
       display: flex;
       justify-content: center;
-      gap: 24px;
-      margin-top: 12px;
+      gap: 20px;
+      width: min(calc(100% - 24px), 300px);
+      transform: translateX(-50%);
+      pointer-events: none;
     }
-    .controls button { width: 110px; font-size: 1.4rem; }
-    .hidden { display: none; }
+
+    .controls button {
+      width: 120px;
+      min-height: 54px;
+      padding: 8px 16px;
+      border: 2px solid #183153;
+      border-radius: 16px;
+      background: #ffca3a;
+      font-size: 1.5rem;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, .2);
+      pointer-events: auto;
+      touch-action: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    @media (max-height: 700px) {
+      body {
+        padding-top: 8px;
+      }
+
+      .help {
+        margin-bottom: 6px;
+      }
+
+      .options {
+        margin-bottom: 6px;
+      }
+
+      .controls button {
+        min-height: 48px;
+      }
+    }
   </style>
 </head>
+
 <body>
   <main class="game">
     <div class="game-top">
-  <h1>🏁 ซิ่งเก็บดาว</h1>
-  <a class="home-btn" href="index.html">⌂ หน้าแรก</a>
-</div>
+      <h1>🏁 ซิ่งเก็บดาว</h1>
+      <a class="home-btn" href="index.html">⌂ หน้าแรก</a>
+    </div>
+
     <p class="help">เก็บคำตอบที่ถูกต้อง หลบกรวย แล้วไปให้ถึงด่านถัดไป!</p>
 
     <div class="options">
-      <label>เลือกวิชา
+      <label>
+        เลือกวิชา
         <select id="subject">
           <option value="math">คณิตศาสตร์</option>
           <option value="thai">ภาษาไทย</option>
@@ -104,7 +217,9 @@
           <option value="general">ความรู้ทั่วไป</option>
         </select>
       </label>
-      <label>เลือกรถ
+
+      <label>
+        เลือกรถ
         <select id="carColor">
           <option value="#ff595e">รถสีแดง</option>
           <option value="#1982c4">รถสีน้ำเงิน</option>
@@ -112,7 +227,9 @@
           <option value="#9b5de5">รถสีม่วง</option>
         </select>
       </label>
-      <label>เลือกสนาม
+
+      <label>
+        เลือกสนาม
         <select id="track">
           <option value="meadow">ทุ่งหญ้า</option>
           <option value="desert">ทะเลทราย</option>
@@ -122,29 +239,40 @@
     </div>
 
     <div class="stage">
-      <canvas id="gameCanvas" width="360" height="600"></canvas>
+      <canvas id="gameCanvas" width="360" height="600" aria-label="สนามเกมซิ่งเก็บดาว"></canvas>
+
       <div class="overlay" id="overlay">
         <div class="panel">
           <h2 id="overlayTitle">พร้อมซิ่งหรือยัง?</h2>
-          <p id="overlayText">เลือกรถ สนาม และวิชาที่อยากฝึก จากนั้นเก็บคำตอบให้ถูกต้อง!</p>
-          <button id="startButton">เริ่มเกม</button>
+          <p id="overlayText">
+            เลือกวิชา รถ และสนาม จากนั้นขับไปเก็บคำตอบที่ถูกต้อง ระวังกรวยด้วยนะ!
+          </p>
+          <button id="startButton" type="button">เริ่มเกม</button>
         </div>
       </div>
     </div>
-
-    <div class="controls">
-      <button id="leftButton" aria-label="เลี้ยวซ้าย">⬅️</button>
-      <button id="rightButton" aria-label="เลี้ยวขวา">➡️</button>
-    </div>
   </main>
 
+  <div class="controls" aria-label="ปุ่มควบคุมรถ">
+    <button id="leftButton" type="button" aria-label="เลี้ยวซ้าย">⬅️</button>
+    <button id="rightButton" type="button" aria-label="เลี้ยวขวา">➡️</button>
+  </div>
+
   <script>
+    "use strict";
+
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
+
     const overlay = document.getElementById("overlay");
     const overlayTitle = document.getElementById("overlayTitle");
     const overlayText = document.getElementById("overlayText");
     const startButton = document.getElementById("startButton");
+
+    const subjectSelect = document.getElementById("subject");
+    const carSelect = document.getElementById("carColor");
+    const trackSelect = document.getElementById("track");
+
     const W = canvas.width;
     const H = canvas.height;
     const laneX = [90, 180, 270];
@@ -165,78 +293,104 @@
     let message = "เก็บคำตอบให้ถูกนะ!";
     let messageTimer = 0;
 
-    const subjectSelect = document.getElementById("subject");
-    const carSelect = document.getElementById("carColor");
-    const trackSelect = document.getElementById("track");
-
     const questionBanks = {
       thai: [
-        { q: "คำตรงข้ามของ “สูง” คือ?", a: ["ต่ำ", "กว้าง", "ยาว"] , c: 0 },
-        { q: "คำใดเป็นชื่อสัตว์?", a: ["แมว", "โต๊ะ", "วิ่ง"], c: 0 },
-        { q: "คำใดเป็นผลไม้?", a: ["มะม่วง", "รองเท้า", "ดินสอ"], c: 0 },
-        { q: "คำใดมีความหมายว่า “รวดเร็ว”?", a: ["ไว", "ช้า", "หนัก"], c: 0 },
-        { q: "คำใดเป็นสี?", a: ["สีฟ้า", "เก้าอี้", "กระโดด"], c: 0 }
+        { q: "คำตรงข้ามของ “สูง” คือ?", choices: ["ต่ำ", "กว้าง", "ยาว"], correct: 0 },
+        { q: "คำใดเป็นชื่อสัตว์?", choices: ["แมว", "โต๊ะ", "วิ่ง"], correct: 0 },
+        { q: "คำใดเป็นผลไม้?", choices: ["มะม่วง", "รองเท้า", "ดินสอ"], correct: 0 },
+        { q: "คำใดหมายถึงรวดเร็ว?", choices: ["ไว", "ช้า", "หนัก"], correct: 0 },
+        { q: "คำใดเป็นสี?", choices: ["สีฟ้า", "เก้าอี้", "กระโดด"], correct: 0 }
       ],
+
       english: [
-        { q: "“Cat” แปลว่าอะไร?", a: ["แมว", "สุนัข", "นก"], c: 0 },
-        { q: "“Red” คือสีอะไร?", a: ["สีแดง", "สีเขียว", "สีฟ้า"], c: 0 },
-        { q: "“One” หมายถึงเลขใด?", a: ["1", "2", "3"], c: 0 },
-        { q: "“Apple” คืออะไร?", a: ["แอปเปิล", "กล้วย", "ส้ม"], c: 0 },
-        { q: "“Happy” แปลว่าอะไร?", a: ["มีความสุข", "เหนื่อย", "หิว"], c: 0 }
+        { q: "“Cat” แปลว่าอะไร?", choices: ["แมว", "สุนัข", "นก"], correct: 0 },
+        { q: "“Red” คือสีอะไร?", choices: ["สีแดง", "สีเขียว", "สีฟ้า"], correct: 0 },
+        { q: "“One” หมายถึงเลขใด?", choices: ["1", "2", "3"], correct: 0 },
+        { q: "“Apple” คืออะไร?", choices: ["แอปเปิล", "กล้วย", "ส้ม"], correct: 0 },
+        { q: "“Happy” แปลว่าอะไร?", choices: ["มีความสุข", "เหนื่อย", "หิว"], correct: 0 }
       ],
+
       general: [
-        { q: "สัตว์ชนิดใดบินได้?", a: ["นก", "ปลา", "เต่า"], c: 0 },
-        { q: "ดวงอาทิตย์ขึ้นทางทิศใด?", a: ["ทิศตะวันออก", "ทิศเหนือ", "ทิศใต้"], c: 0 },
-        { q: "เรามองเห็นสิ่งต่าง ๆ ด้วยอะไร?", a: ["ตา", "หู", "จมูก"], c: 0 },
-        { q: "น้ำแข็งเกิดจากอะไร?", a: ["น้ำที่เย็นจัด", "ทราย", "ควัน"], c: 0 },
-        { q: "วันหนึ่งมีกี่ชั่วโมง?", a: ["24", "12", "60"], c: 0 }
+        { q: "สัตว์ชนิดใดบินได้?", choices: ["นก", "ปลา", "เต่า"], correct: 0 },
+        { q: "ดวงอาทิตย์ขึ้นทางทิศใด?", choices: ["ตะวันออก", "เหนือ", "ใต้"], correct: 0 },
+        { q: "เรามองเห็นด้วยอะไร?", choices: ["ตา", "หู", "จมูก"], correct: 0 },
+        { q: "น้ำแข็งเกิดจากอะไร?", choices: ["น้ำเย็นจัด", "ทราย", "ควัน"], correct: 0 },
+        { q: "หนึ่งวันมีกี่ชั่วโมง?", choices: ["24", "12", "60"], correct: 0 }
       ]
     };
 
-    function makeQuestion() {
-      const subject = subjectSelect.value;
+    function shuffle(array) {
+      const result = [...array];
 
-      if (subject === "math") {
-        const a = Math.floor(Math.random() * 9) + 1;
-        const b = Math.floor(Math.random() * 9) + 1;
-        const answer = a + b;
-        const choices = [answer];
-
-        while (choices.length < 3) {
-          const wrong = answer + Math.floor(Math.random() * 9) - 4;
-          if (wrong >= 0 && !choices.includes(wrong)) choices.push(wrong);
-        }
-
-        return { q: `${a} + ${b} = ?`, choices, correct: 0 };
+      for (let i = result.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [result[i], result[j]] = [result[j], result[i]];
       }
 
-      const bank = questionBanks[subject];
-      const item = bank[Math.floor(Math.random() * bank.length)];
-      return { q: item.q, choices: [...item.a], correct: item.c };
+      return result;
     }
 
-    function shuffleQuestion(question) {
-      const choices = question.choices.map((text, index) => ({
-        text,
-        correct: index === question.correct
-      }));
+    function makeMathQuestion() {
+      let a;
+      let b;
+      let answer;
+      let questionText;
 
-      for (let i = choices.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [choices[i], choices[j]] = [choices[j], choices[i]];
+      if (stage >= 3 && Math.random() < 0.35) {
+        a = Math.floor(Math.random() * 5) + 2;
+        b = Math.floor(Math.random() * 5) + 2;
+        answer = a * b;
+        questionText = `${a} × ${b} = ?`;
+      } else if (Math.random() < 0.35) {
+        a = Math.floor(Math.random() * 15) + 5;
+        b = Math.floor(Math.random() * Math.min(a, 9)) + 1;
+        answer = a - b;
+        questionText = `${a} − ${b} = ?`;
+      } else {
+        a = Math.floor(Math.random() * 9) + 1;
+        b = Math.floor(Math.random() * 9) + 1;
+        answer = a + b;
+        questionText = `${a} + ${b} = ?`;
       }
 
-      return {
-        q: question.q,
-        choices: choices.map(item => item.text),
-        correctLane: choices.findIndex(item => item.correct),
-        checked: false,
-        y: -35
-      };
+      const choices = [answer];
+
+      while (choices.length < 3) {
+        const offset = Math.floor(Math.random() * 9) - 4;
+        const wrongAnswer = answer + (offset === 0 ? 5 : offset);
+
+        if (wrongAnswer >= 0 && !choices.includes(wrongAnswer)) {
+          choices.push(wrongAnswer);
+        }
+      }
+
+      return { q: questionText, choices, correct: 0 };
+    }
+
+    function makeQuestion() {
+      if (subjectSelect.value === "math") {
+        return makeMathQuestion();
+      }
+
+      const bank = questionBanks[subjectSelect.value];
+      return bank[Math.floor(Math.random() * bank.length)];
     }
 
     function spawnAnswer() {
-      answers.push(shuffleQuestion(makeQuestion()));
+      const question = makeQuestion();
+      const choicesWithAnswers = question.choices.map((text, index) => ({
+        text: String(text),
+        correct: index === question.correct
+      }));
+      const shuffledChoices = shuffle(choicesWithAnswers);
+
+      answers.push({
+        y: -35,
+        question: question.q,
+        choices: shuffledChoices.map(item => item.text),
+        correctLane: shuffledChoices.findIndex(item => item.correct),
+        checked: false
+      });
     }
 
     function startGame() {
@@ -249,13 +403,17 @@
       cones = [];
       answerTimer = 0;
       coneTimer = 1.5;
+      roadOffset = 0;
       message = "เก็บคำตอบให้ถูกนะ!";
       messageTimer = 2;
+
       spawnAnswer();
+
       running = true;
       lastTime = performance.now();
       startButton.textContent = "เริ่มเกม";
       overlay.classList.add("hidden");
+
       requestAnimationFrame(gameLoop);
     }
 
@@ -264,32 +422,42 @@
       lane = Math.max(0, Math.min(2, lane + direction));
     }
 
+    function bindControl(button, direction) {
+      button.addEventListener("pointerdown", event => {
+        event.preventDefault();
+        move(direction);
+      });
+    }
+
+    bindControl(document.getElementById("leftButton"), -1);
+    bindControl(document.getElementById("rightButton"), 1);
+
     document.addEventListener("keydown", event => {
       if (event.key === "ArrowLeft" || event.key.toLowerCase() === "a") {
         event.preventDefault();
         move(-1);
       }
+
       if (event.key === "ArrowRight" || event.key.toLowerCase() === "d") {
         event.preventDefault();
         move(1);
       }
     });
 
-    document.getElementById("leftButton").addEventListener("click", () => move(-1));
-    document.getElementById("rightButton").addEventListener("click", () => move(1));
     startButton.addEventListener("click", startGame);
 
     function endGame() {
       running = false;
       overlayTitle.textContent = "จบเกมแล้ว!";
       overlayText.textContent =
-        `ได้ ${score} ดาว และไปถึงด่าน ${stage} ลองเล่นอีกครั้งเพื่อทำคะแนนให้สูงขึ้นนะ`;
+        `เก็บดาวได้ ${score} ดวง และไปถึงด่าน ${stage} ลองเล่นอีกครั้งเพื่อทำคะแนนให้สูงขึ้นนะ`;
       startButton.textContent = "เล่นอีกครั้ง";
       overlay.classList.remove("hidden");
     }
 
     function update(dt) {
       const newStage = Math.floor(score / 5) + 1;
+
       if (newStage > stage) {
         stage = newStage;
         message = `เก่งมาก! เข้าสู่ด่าน ${stage}`;
@@ -298,16 +466,24 @@
 
       speed = Math.min(330, 170 + (stage - 1) * 25);
       roadOffset = (roadOffset + speed * dt) % 70;
+
       answerTimer += dt;
       coneTimer += dt;
-      if (messageTimer > 0) messageTimer -= dt;
 
-      if (answerTimer > Math.max(1.7, 2.5 - stage * 0.08)) {
+      if (messageTimer > 0) {
+        messageTimer -= dt;
+      }
+
+      const answerInterval = Math.max(1.8, 2.5 - stage * 0.08);
+
+      if (answerTimer >= answerInterval) {
         answerTimer = 0;
         spawnAnswer();
       }
 
-      if (coneTimer > Math.max(1.5, 3.1 - stage * 0.12)) {
+      const coneInterval = Math.max(1.6, 3.1 - stage * 0.12);
+
+      if (coneTimer >= coneInterval) {
         coneTimer = 0;
         cones.push({
           y: -35,
@@ -318,15 +494,17 @@
 
       for (const item of answers) {
         item.y += speed * dt;
-        if (!item.checked && item.y >= carY - 16) {
+
+        if (!item.checked && item.y >= carY - 18) {
           item.checked = true;
+
           if (item.correctLane === lane) {
             score++;
-            message = "เยเย่! เก็บได้ 1 ดาว";
+            message = "เยี่ยมมาก! ได้รับ 1 ดาว";
             messageTimer = 1.2;
           } else {
             lives--;
-            message = "คำตอบยังไม่ถูก ลองข้อต่อไปนะ";
+            message = "ยังไม่ถูก ลองข้อต่อไปนะ";
             messageTimer = 1.3;
           }
         }
@@ -334,8 +512,10 @@
 
       for (const cone of cones) {
         cone.y += speed * dt;
-        if (!cone.checked && cone.y >= carY - 16) {
+
+        if (!cone.checked && cone.y >= carY - 18) {
           cone.checked = true;
+
           if (cone.lane === lane) {
             lives--;
             message = "ชนกรวยแล้ว ระวังหน่อย!";
@@ -344,10 +524,12 @@
         }
       }
 
-      answers = answers.filter(item => item.y < H + 50);
-      cones = cones.filter(cone => cone.y < H + 50);
+      answers = answers.filter(item => item.y < H + 60);
+      cones = cones.filter(cone => cone.y < H + 60);
 
-      if (lives <= 0) endGame();
+      if (lives <= 0) {
+        endGame();
+      }
     }
 
     function drawRoad() {
@@ -355,19 +537,29 @@
 
       if (track === "desert") {
         ctx.fillStyle = "#e8b45a";
-        ctx.fillRect(0, 0, W, H);
       } else if (track === "space") {
         ctx.fillStyle = "#171633";
-        ctx.fillRect(0, 0, W, H);
+      } else {
+        ctx.fillStyle = "#48a868";
+      }
+
+      ctx.fillRect(0, 0, W, H);
+
+      if (track === "space") {
         ctx.fillStyle = "#ffffff";
-        for (let i = 0; i < 24; i++) {
+
+        for (let i = 0; i < 28; i++) {
           const x = (i * 47 + 19) % W;
           const y = (i * 83 + 31) % H;
           ctx.fillRect(x, y, 2, 2);
         }
-      } else {
-        ctx.fillStyle = "#48a868";
-        ctx.fillRect(0, 0, W, H);
+      }
+
+      if (track === "desert") {
+        ctx.fillStyle = "#d99d43";
+        ctx.beginPath();
+        ctx.arc(310, 90, 24, 0, Math.PI * 2);
+        ctx.fill();
       }
 
       ctx.fillStyle = "#42464b";
@@ -377,7 +569,7 @@
       ctx.fillRect(35, 0, 5, H);
       ctx.fillRect(320, 0, 5, H);
 
-      ctx.strokeStyle = "#ffffffaa";
+      ctx.strokeStyle = "rgba(255,255,255,.75)";
       ctx.lineWidth = 4;
       ctx.setLineDash([28, 24]);
       ctx.lineDashOffset = -roadOffset;
@@ -414,35 +606,53 @@
       ctx.fillRect(x + 6, carY + 29, 9, 5);
     }
 
+    function drawChoice(text, x, y) {
+      const boxWidth = 78;
+      const boxHeight = 44;
+
+      ctx.fillStyle = "#ffca3a";
+      ctx.beginPath();
+      ctx.roundRect(x - boxWidth / 2, y - boxHeight / 2, boxWidth, boxHeight, 10);
+      ctx.fill();
+
+      let fontSize = 15;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      do {
+        ctx.font = `bold ${fontSize}px system-ui`;
+        if (ctx.measureText(text).width <= boxWidth - 10) break;
+        fontSize--;
+      } while (fontSize > 9);
+
+      ctx.fillStyle = "#183153";
+      ctx.fillText(text, x, y, boxWidth - 8);
+    }
+
     function draw() {
       drawRoad();
 
       ctx.textAlign = "center";
-      ctx.font = "bold 19px system-ui";
+      ctx.textBaseline = "alphabetic";
+      ctx.font = "bold 18px system-ui";
       ctx.fillStyle = "white";
-      ctx.fillText(`⭐ ${score}`, 70, 35);
-      ctx.fillText(`❤️ ${lives}`, 180, 35);
-      ctx.fillText(`ด่าน ${stage}`, 285, 35);
+      ctx.fillText(`⭐ ${score}`, 70, 34);
+      ctx.fillText(`❤️ ${lives}`, 180, 34);
+      ctx.fillText(`ด่าน ${stage}`, 285, 34);
 
       for (const item of answers) {
-        ctx.font = "bold 17px system-ui";
+        ctx.font = "bold 15px system-ui";
         ctx.fillStyle = "#ffeb75";
-        ctx.fillText(item.q, 180, item.y - 38);
+        ctx.fillText(item.question, 180, item.y - 31);
 
-        item.choices.forEach((value, i) => {
-          const x = laneX[i];
-          ctx.fillStyle = "#ffca3a";
-          ctx.beginPath();
-          ctx.arc(x, item.y, 27, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.fillStyle = "#183153";
-          ctx.font = "bold 17px system-ui";
-          ctx.fillText(value, x, item.y + 6);
+        item.choices.forEach((choice, index) => {
+          drawChoice(choice, laneX[index], item.y);
         });
       }
 
       for (const cone of cones) {
         const x = laneX[cone.lane];
+
         ctx.fillStyle = "#ff7b00";
         ctx.beginPath();
         ctx.moveTo(x, cone.y - 22);
@@ -450,6 +660,7 @@
         ctx.lineTo(x + 20, cone.y + 18);
         ctx.closePath();
         ctx.fill();
+
         ctx.fillStyle = "white";
         ctx.fillRect(x - 13, cone.y + 4, 26, 5);
       }
@@ -457,7 +668,8 @@
       drawCar();
 
       if (messageTimer > 0) {
-        ctx.font = "bold 17px system-ui";
+        ctx.font = "bold 16px system-ui";
+        ctx.textAlign = "center";
         ctx.fillStyle = "white";
         ctx.fillText(message, 180, 570);
       }
@@ -465,11 +677,16 @@
 
     function gameLoop(now) {
       if (!running) return;
+
       const dt = Math.min((now - lastTime) / 1000, 0.05);
       lastTime = now;
+
       update(dt);
       draw();
-      if (running) requestAnimationFrame(gameLoop);
+
+      if (running) {
+        requestAnimationFrame(gameLoop);
+      }
     }
 
     draw();
