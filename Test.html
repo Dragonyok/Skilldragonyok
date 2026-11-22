@@ -6,12 +6,8 @@
   <title>พิชิตสนามสอบเข้า ม.1</title>
   <style>
     * { box-sizing: border-box; }
-    <!-- ปุ่มกลับหน้าหลัก -->
-<a href="index.html" class="back-home-btn" title="กลับหน้าเมนูหลัก">
-    🏠 กลับหน้าหลัก
-</a>
 
-    body {<a href="index.html" class="back-home-btn">🏠 กลับหน้าเมนู</a>
+    body {
       margin: 0;
       min-height: 100vh;
       display: grid;
@@ -20,6 +16,24 @@
       font-family: system-ui, sans-serif;
       color: #1e293b;
       background: linear-gradient(135deg, #dbeafe, #f5d0fe);
+    }
+
+    .back-home-btn {
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      z-index: 10;
+      padding: 9px 13px;
+      border-radius: 10px;
+      background: white;
+      color: #334155;
+      text-decoration: none;
+      font-weight: 700;
+      box-shadow: 0 2px 8px #33415524;
+    }
+
+    .back-home-btn:hover {
+      background: #eef2ff;
     }
 
     .game {
@@ -158,6 +172,10 @@
   </style>
 </head>
 <body>
+  <a href="index.html" class="back-home-btn" title="กลับหน้าเมนูหลัก">
+    🏠 กลับหน้าหลัก
+  </a>
+
   <main class="game">
     <section id="startScreen">
       <h1>🎓 พิชิตสนามสอบเข้า ม.1</h1>
@@ -582,5 +600,10 @@
 
     showBestScore();
   </script>
+  <!-- Firebase SDK + ตัวกลาง -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="arcade-firebase.js"></script>
 </body>
 </html>

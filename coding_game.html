@@ -7,11 +7,6 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- ปุ่มกลับหน้าหลัก -->
-<a href="index.html" class="back-home-btn" title="กลับหน้าเมนูหลัก">
-    🏠 กลับหน้าหลัก
-</a>
-
     <div class="game-container">
         <!-- ปุ่มกลับหน้าหลัก -->
         <button class="home-btn" onclick="goToHome()">🏠 หน้าแรก</button>
@@ -35,11 +30,17 @@
                 <button onclick="movePlayer('RIGHT')">ขวา ➡️</button>
             </div>
             <button onclick="movePlayer('DOWN')">⬇️ เดินลง</button>
-        </div>
-        
+        </div>    <!-- ปุ่มกลับหน้าหลัก -->
+<a href="index.html" class="back-home-btn" title="กลับหน้าเมนูหลัก">
+    🏠 กลับหน้าหลัก
+</a>    
         <button class="reset-btn" onclick="resetGame()">🔄 เริ่มด่านนี้ใหม่</button>
     </div>
-
     <script src="script.js"></script>
+    <!-- Firebase SDK + ตัวกลาง -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="arcade-firebase.js"></script>
 </body>
 </html>

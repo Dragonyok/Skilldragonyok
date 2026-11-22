@@ -1,139 +1,434 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ศูนย์รวมความสนุก - Arcade Hub</title>
-    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Prompt', sans-serif;
-        }
-        body {
-            background: linear-gradient(135deg, #1f4068, #162447);
-            color: #fff;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-        header h1 {
-            font-size: 2.5rem;
-            color: #e43f5a;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-        header p {
-            font-size: 1.1rem;
-            color: #cbd3d9;
-        }
-        .menu-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            width: 100%;
-            max-width: 1000px;
-        }
-        .menu-card {
-            background: #0f3057;
-            border-radius: 15px;
-            padding: 25px;
-            text-align: center;
-            text-decoration: none;
-            color: #fff;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
-            transition: transform 0.3s ease, background 0.3s ease;
-            border: 2px solid transparent;
-        }
-        .menu-card:hover {
-            transform: translateY(-8px);
-            background: #1b4b75;
-            border-color: #e43f5a;
-        }
-        .menu-card .icon {
-            font-size: 3rem;
-            margin-bottom: 15px;
-        }
-        .menu-card h2 {
-            font-size: 1.4rem;
-            margin-bottom: 10px;
-        }
-        .menu-card p {
-            font-size: 0.9rem;
-            color: #a0aec0;
-        }
-        footer {
-            margin-top: 50px;
-            font-size: 0.85rem;
-            color: #718096;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ศูนย์รวมความสนุก - Arcade Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Prompt', sans-serif; }
+
+  body {
+    background: linear-gradient(135deg, #1f4068, #162447);
+    color: #fff;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  /* ---------- Top bar / Auth ---------- */
+  .topbar {
+    width: 100%;
+    max-width: 1000px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+  }
+  .brand { font-weight: 700; color: #e43f5a; font-size: 1.05rem; }
+  .auth-area { display: flex; align-items: center; gap: 10px; }
+
+  .btn {
+    font-family: inherit;
+    font-size: .9rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 16px;
+    cursor: pointer;
+    color: #fff;
+    transition: transform .2s ease, filter .2s ease, background .2s ease;
+  }
+  .btn:hover { filter: brightness(1.12); transform: translateY(-1px); }
+  .btn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+  .btn-primary { background: #e43f5a; }
+  .btn-ghost { background: transparent; border: 1.5px solid #e43f5a; color: #e43f5a; }
+  .btn-ghost:hover { background: rgba(228,63,90,.12); }
+  .btn-google { background: #fff; color: #333; width: 100%; margin-bottom: 10px; }
+  .btn-anon { background: #1b4b75; width: 100%; }
+
+  .user-chip {
+    display: flex; align-items: center; gap: 10px;
+    background: #0f3057;
+    border: 1px solid #1b4b75;
+    padding: 6px 14px 6px 6px;
+    border-radius: 999px;
+  }
+  .user-chip img,
+  .user-chip .avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    display: grid; place-items: center;
+    background: #e43f5a; font-weight: 700; font-size: .95rem;
+    object-fit: cover;
+  }
+  .user-chip .name {
+    font-size: .85rem; font-weight: 600;
+    max-width: 140px; overflow: hidden;
+    text-overflow: ellipsis; white-space: nowrap;
+  }
+  .user-chip .total { font-size: .75rem; color: #f6c453; }
+
+  /* ---------- Header ---------- */
+  header { text-align: center; margin-bottom: 40px; }
+  header h1 {
+    font-size: 2.5rem;
+    color: #e43f5a;
+    margin-bottom: 10px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,.3);
+  }
+  header p { font-size: 1.1rem; color: #cbd3d9; }
+
+  /* ---------- Menu ---------- */
+  .menu-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    width: 100%;
+    max-width: 1000px;
+  }
+  .menu-card {
+    background: #0f3057;
+    border-radius: 15px;
+    padding: 25px;
+    text-align: center;
+    text-decoration: none;
+    color: #fff;
+    box-shadow: 0 8px 16px rgba(0,0,0,.3);
+    transition: transform .3s ease, background .3s ease, border-color .3s ease;
+    border: 2px solid transparent;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .menu-card:hover {
+    transform: translateY(-8px);
+    background: #1b4b75;
+    border-color: #e43f5a;
+  }
+  .menu-card .icon { font-size: 3rem; margin-bottom: 15px; line-height: 1; }
+  .menu-card h2 { font-size: 1.4rem; margin-bottom: 10px; }
+  .menu-card p { font-size: .9rem; color: #a0aec0; }
+
+  .score-line {
+    margin-top: 16px;
+    font-size: .78rem;
+    color: #f6c453;
+    background: rgba(246,196,83,.1);
+    border: 1px dashed rgba(246,196,83,.45);
+    border-radius: 8px;
+    padding: 6px 10px;
+    width: 100%;
+  }
+  .score-line.empty {
+    color: #718096;
+    background: transparent;
+    border-color: #2d3748;
+  }
+
+  footer { margin-top: 50px; font-size: .85rem; color: #718096; }
+
+  /* ---------- Modal ---------- */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.7);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 100;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: #0f3057;
+    border: 1px solid #1b4b75;
+    border-radius: 16px;
+    padding: 26px;
+    width: 100%;
+    max-width: 380px;
+    position: relative;
+    box-shadow: 0 20px 50px rgba(0,0,0,.55);
+    text-align: left;
+  }
+  .modal h2 { font-size: 1.3rem; margin-bottom: 6px; }
+  .modal .muted { font-size: .85rem; color: #a0aec0; margin-bottom: 18px; }
+  .modal input {
+    width: 100%;
+    padding: 11px 14px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    border: 1px solid #1b4b75;
+    background: #162447;
+    color: #fff;
+    font-family: inherit;
+    font-size: .9rem;
+  }
+  .modal input:focus { outline: none; border-color: #e43f5a; }
+  .modal .row { display: flex; gap: 10px; }
+  .modal .row .btn { flex: 1; }
+  .modal-close {
+    position: absolute; top: 12px; right: 14px;
+    background: none; border: none; color: #a0aec0;
+    font-size: 1.1rem; cursor: pointer;
+  }
+  .modal-close:hover { color: #fff; }
+  .divider {
+    display: flex; align-items: center; gap: 10px;
+    margin: 16px 0; color: #718096; font-size: .78rem;
+  }
+  .divider::before, .divider::after {
+    content: ''; flex: 1; height: 1px; background: #1b4b75;
+  }
+  .msg { font-size: .82rem; margin-top: 10px; min-height: 18px; }
+  .msg.error { color: #fc8181; }
+  .msg.ok { color: #68d391; }
+
+  @media (max-width: 520px) {
+    header h1 { font-size: 1.9rem; }
+    .topbar { justify-content: center; }
+  }
+</style>
 </head>
 <body>
 
-    <header>
-        <h1>🎮 Arcade Game Hub</h1>
-        <p>เลือกเกมฝึกทักษะและความสนุกที่คุณต้องการเล่นได้เลย!</p>
-    </header>
-
-    <div class="menu-container">
-        <!-- เกมสมองกล -->
-        <a href="coding_game.html" class="menu-card">
-            <div class="icon">🤖</div>
-            <h2>เกมสมองกล (Coding)</h2>
-            <p>ฝึกทักษะการคิดเชิงคำนวณและวางแผนคำสั่ง</p>
-        </a>
-
-        <!-- เกมคณิตศาสตร์ -->
-        <a href="math_game.html" class="menu-card">
-            <div class="icon">🔢</div>
-            <h2>เกมคณิตคิดเร็ว</h2>
-            <p>ฝึกทักษะการคำนวณ บวก ลบ คูณ หาร</p>
-        </a>
-
-        <!-- เกมวิทยาศาสตร์ -->
-        <a href="science_game_pro.html" class="menu-card">
-            <div class="icon">🔬</div>
-            <h2>เกมวิทยาศาสตร์</h2>
-            <p>ผจญภัยไปกับโลกวิทยาศาสตร์สุดสนุก</p>
-        </a>
-
-        <!-- เกมภาษาอังกฤษ -->
-        <a href="eng.html" class="menu-card">
-            <div class="icon">abc</div>
-            <h2>เกมภาษาอังกฤษ</h2>
-            <p>ฝึกคำศัพท์และทักษะภาษาอังกฤษ</p>
-        </a>
-
-        <!-- เกมภาษาไทย -->
-        <a href="thai_arcade.html" class="menu-card">
-            <div class="icon">🇹🇭</div>
-            <h2>อาร์เคดภาษาไทย</h2>
-            <p>สนุกกับเกมฝึกพิมพ์และคำศัพท์ไทย</p>
-        </a>
-        <a href="Test.html" class="menu-card">
-
-    <div class="icon">🧪</div>
-
-    <h2>เกมทดสอบ</h2>
-
-    <p>เข้าเล่นเกม Test</p>
-
-</a>
+  <!-- ===== Top bar ===== -->
+  <div class="topbar">
+    <div class="brand">🎮 Arcade Game Hub</div>
+    <div class="auth-area" id="authArea">
+      <button class="btn btn-ghost" id="btnLogin">เข้าสู่ระบบ</button>
     </div>
+  </div>
 
-    <footer>
-        &copy; 2026 Game Aladin Project. All rights Reserved.
-    </footer>
+  <!-- ===== Header ===== -->
+  <header>
+    <h1>🎮 Arcade Game Hub</h1>
+    <p>เลือกเกมฝึกทักษะและความสนุกที่คุณต้องการเล่นได้เลย!</p>
+  </header>
 
+  <!-- ===== Menu (render ด้วย JS) ===== -->
+  <div class="menu-container" id="menuContainer"></div>
+
+  <footer>&copy; 2026 Game Aladin Project. All rights Reserved.</footer>
+
+  <!-- ===== Auth modal ===== -->
+  <div class="modal-overlay" id="authModal">
+    <div class="modal">
+      <button class="modal-close" id="btnCloseModal" aria-label="ปิด">✕</button>
+      <h2>เข้าสู่ระบบ</h2>
+      <p class="muted">เข้าสู่ระบบเพื่อเก็บคะแนนสะสมของคุณ</p>
+
+      <button class="btn btn-google" id="btnGoogle">🔵 ดำเนินการต่อด้วย Google</button>
+      <button class="btn btn-anon" id="btnAnon">👤 เล่นแบบไม่ระบุตัวตน</button>
+
+      <div class="divider"><span>หรือใช้อีเมล</span></div>
+
+      <input type="email" id="email" placeholder="อีเมล" autocomplete="email">
+      <input type="password" id="password" placeholder="รหัสผ่าน (6 ตัวขึ้นไป)" autocomplete="current-password">
+      <div class="row">
+        <button class="btn btn-primary" id="btnEmailLogin">เข้าสู่ระบบ</button>
+        <button class="btn btn-ghost" id="btnEmailSignup">สมัครใหม่</button>
+      </div>
+      <p class="msg" id="authMsg"></p>
+    </div>
+  </div>
+
+  <!-- ===== Firebase SDK (compat v10) ===== -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <!-- ===== ตัวช่วยกลางของโปรเจกต์ ===== -->
+  <script src="arcade-firebase.js"></script>
+
+  <!-- ===== UI Logic ===== -->
+  <script>
+  (function () {
+    'use strict';
+
+    /* ---------- รายการเกม ---------- */
+    const GAME_LIST = [
+      { id:'coding',  file:'coding_game.html',      icon:'🤖', title:'เกมสมองกล (Coding)', desc:'ฝึกทักษะการคิดเชิงคำนวณและวางแผนคำสั่ง' },
+      { id:'math',    file:'math_game.html',        icon:'🔢', title:'เกมคณิตคิดเร็ว',     desc:'ฝึกทักษะการคำนวณ บวก ลบ คูณ หาร' },
+      { id:'science', file:'science_game_pro.html', icon:'🔬', title:'เกมวิทยาศาสตร์',    desc:'ผจญภัยไปกับโลกวิทยาศาสตร์สุดสนุก' },
+      { id:'english', file:'eng.html',              icon:'ABC', title:'เกมภาษาอังกฤษ',    desc:'ฝึกคำศัพท์และทักษะภาษาอังกฤษ' },
+      { id:'thai',    file:'thai_arcade.html',      icon:'🇹🇭', title:'อาร์เคดภาษาไทย',    desc:'สนุกกับเกมฝึกพิมพ์และคำศัพท์ไทย' },
+      { id:'test',    file:'Test.html',             icon:'🧪', title:'เกมทดสอบ',          desc:'เข้าเล่นเกม Test' }
+    ];
+
+    /* ---------- Utilities ---------- */
+    function escapeHtml(str) {
+      return String(str == null ? '' : str)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function errText(err) {
+      const code = (err && err.code) || '';
+      const map = {
+        'auth/email-already-in-use'   : 'อีเมลนี้ถูกใช้แล้ว ลองเข้าสู่ระบบแทน',
+        'auth/invalid-email'          : 'รูปแบบอีเมลไม่ถูกต้อง',
+        'auth/weak-password'          : 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร',
+        'auth/wrong-password'         : 'รหัสผ่านไม่ถูกต้อง',
+        'auth/user-not-found'         : 'ไม่พบบัญชีนี้',
+        'auth/invalid-credential'     : 'อีเมลหรือรหัสผ่านไม่ถูกต้อง',
+        'auth/popup-closed-by-user'   : 'ปิดหน้าต่างเข้าสู่ระบบก่อนทำรายการเสร็จ',
+        'auth/popup-blocked'          : 'เบราว์เซอร์บล็อกป๊อปอัป กรุณาอนุญาต',
+        'auth/operation-not-allowed'  : 'ยังไม่เปิดวิธีเข้าสู่ระบบนี้ใน Firebase Console',
+        'auth/unauthorized-domain'    : 'โดเมนนี้ยังไม่ได้รับอนุญาตใน Firebase Console',
+        'auth/network-request-failed' : 'การเชื่อมต่อขัดข้อง ลองอีกครั้ง'
+      };
+      return map[code] || (err && err.message) || 'เกิดข้อผิดพลาด';
+    }
+
+    /* ---------- Render menu ---------- */
+    const menuEl = document.getElementById('menuContainer');
+    menuEl.innerHTML = GAME_LIST.map(function (g) {
+      return '<a href="' + g.file + '" class="menu-card">' +
+               '<div class="icon">' + g.icon + '</div>' +
+               '<h2>' + escapeHtml(g.title) + '</h2>' +
+               '<p>' + escapeHtml(g.desc) + '</p>' +
+               '<div class="score-line empty" data-score="' + g.id + '">🔒 เข้าสู่ระบบเพื่อเก็บคะแนน</div>' +
+             '</a>';
+    }).join('');
+
+    /* ---------- Auth UI ---------- */
+    const authArea = document.getElementById('authArea');
+    const modal    = document.getElementById('authModal');
+    const msgEl    = document.getElementById('authMsg');
+
+    function setMsg(text, type) {
+      msgEl.textContent = text || '';
+      msgEl.className = 'msg' + (type ? ' ' + type : '');
+    }
+    function openModal()  { modal.classList.add('open'); setMsg(''); }
+    function closeModal() { modal.classList.remove('open'); setMsg(''); }
+
+    function bindLoginBtn() {
+      const btn = document.getElementById('btnLogin');
+      if (btn) btn.onclick = openModal;
+    }
+
+    document.getElementById('btnCloseModal').onclick = closeModal;
+    modal.addEventListener('click', function (e) { if (e.target === modal) closeModal(); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
+
+    async function withBusy(btn, fn) {
+      const old = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'กำลังดำเนินการ...';
+      try { await fn(); }
+      catch (err) { console.warn(err); setMsg(errText(err), 'error'); }
+      finally { btn.disabled = false; btn.textContent = old; }
+    }
+
+    /* ---------- Render states ---------- */
+    function renderSignedOut() {
+      authArea.innerHTML = '<button class="btn btn-ghost" id="btnLogin">เข้าสู่ระบบ</button>';
+      bindLoginBtn();
+
+      document.querySelectorAll('[data-score]').forEach(function (el) {
+        el.classList.add('empty');
+        el.textContent = '🔒 เข้าสู่ระบบเพื่อเก็บคะแนน';
+      });
+    }
+
+    function renderSignedIn(user, profile) {
+      const name    = profile.displayName || user.displayName || 'ผู้เล่น';
+      const total   = profile.totalScore || 0;
+      const initial = (name.trim().charAt(0) || '?').toUpperCase();
+      const avatar  = profile.photoURL
+        ? '<img src="' + escapeHtml(profile.photoURL) + '" alt="">'
+        : '<div class="avatar">' + escapeHtml(initial) + '</div>';
+
+      const actionBtn = user.isAnonymous
+        ? '<button class="btn btn-ghost" id="btnUpgrade">ผูกบัญชี</button>'
+        : '<button class="btn btn-ghost" id="btnLogout">ออก</button>';
+
+      authArea.innerHTML =
+        '<div class="user-chip" title="' + escapeHtml(name) + '">' +
+          avatar +
+          '<div>' +
+            '<div class="name">' + escapeHtml(name) + '</div>' +
+            '<div class="total">⭐ ' + total + ' คะแนน</div>' +
+          '</div>' +
+        '</div>' + actionBtn;
+
+      const btnLogout = document.getElementById('btnLogout');
+      if (btnLogout) btnLogout.onclick = function () { ArcadeScores.signOut(); };
+
+      const btnUpgrade = document.getElementById('btnUpgrade');
+      if (btnUpgrade) btnUpgrade.onclick = openModal;
+
+      document.querySelectorAll('[data-score]').forEach(function (el) {
+        const g = (profile.games || {})[el.dataset.score];
+        if (g) {
+          el.classList.remove('empty');
+          el.textContent = '⭐ สะสม ' + (g.total || 0) +
+                           ' · สูงสุด ' + (g.best || 0) +
+                           ' · เล่น ' + (g.plays || 0) + ' ครั้ง';
+        } else {
+          el.classList.add('empty');
+          el.textContent = 'ยังไม่เคยเล่น — เริ่มเลย!';
+        }
+      });
+    }
+
+    /* ---------- Auth state ---------- */
+    let unsubProfile = null;
+
+    ArcadeScores.onAuth(async function (user) {
+      if (unsubProfile) { unsubProfile(); unsubProfile = null; }
+
+      if (!user) { renderSignedOut(); return; }
+
+      try { await ArcadeScores.ensureUserDoc(user); }
+      catch (err) { console.warn('ensureUserDoc', err); }
+
+      unsubProfile = ArcadeScores.watchProfile(user.uid, function (profile) {
+        renderSignedIn(user, profile);
+      });
+    });
+
+    /* ---------- Modal buttons ---------- */
+    document.getElementById('btnGoogle').onclick = function (e) {
+      withBusy(e.currentTarget, async function () {
+        const u = ArcadeScores.currentUser();
+        if (u && u.isAnonymous) await ArcadeScores.linkGoogle();  // เก็บคะแนนเดิมไว้
+        else                    await ArcadeScores.signInWithGoogle();
+        closeModal();
+      });
+    };
+
+    document.getElementById('btnAnon').onclick = function (e) {
+      withBusy(e.currentTarget, async function () {
+        await ArcadeScores.signInAnonymously();
+        closeModal();
+      });
+    };
+
+    document.getElementById('btnEmailLogin').onclick = function (e) {
+      const email = document.getElementById('email').value.trim();
+      const pass  = document.getElementById('password').value;
+      withBusy(e.currentTarget, async function () {
+        if (!email || !pass) throw new Error('กรุณากรอกอีเมลและรหัสผ่าน');
+        await ArcadeScores.signInWithEmail(email, pass);
+        closeModal();
+      });
+    };
+
+    document.getElementById('btnEmailSignup').onclick = function (e) {
+      const email = document.getElementById('email').value.trim();
+      const pass  = document.getElementById('password').value;
+      withBusy(e.currentTarget, async function () {
+        if (!email || !pass) throw new Error('กรุณากรอกอีเมลและรหัสผ่าน');
+        await ArcadeScores.signUpWithEmail(email, pass);
+        closeModal();
+      });
+    };
+  })();
+  </script>
 </body>
 </html>
