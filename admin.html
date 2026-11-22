@@ -9,15 +9,19 @@
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Prompt', sans-serif; }
   body { background: #162447; color: #fff; min-height: 100vh; padding: 30px 20px; }
   
-  .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; max-width: 1000px; margin: 0 auto 20px; }
+  .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; max-width: 1100px; margin: 0 auto 20px; flex-wrap: wrap; gap: 10px; }
   h1 { color: #e43f5a; font-size: 1.8rem; }
-  .btn { background: #e43f5a; color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 10px; font-weight: 600; font-size: 0.9rem; }
+  .btn { background: #e43f5a; color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 10px; font-weight: 600; font-size: 0.9rem; border:none; cursor:pointer; }
   .btn:hover { background: #c92f48; }
 
-  .table-container { max-width: 1000px; margin: 0 auto; background: #1f4068; border-radius: 15px; overflow-x: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+  .controls { display: flex; justify-content: space-between; margin-bottom: 15px; max-width: 1100px; margin: 0 auto 15px; gap: 10px; }
+  .search-box { width: 100%; max-width: 400px; padding: 10px 15px; border-radius: 8px; border: 1px solid #2a4a7f; background: #1f4068; color: #fff; font-size: 0.9rem; }
+  .search-box:focus { outline: none; border-color: #e43f5a; }
+
+  .table-container { max-width: 1100px; margin: 0 auto; background: #1f4068; border-radius: 15px; overflow-x: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
   table { width: 100%; border-collapse: collapse; text-align: left; }
   th, td { padding: 15px 20px; border-bottom: 1px solid #2a4a7f; }
-  th { background: #0f3057; color: #a0aec0; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; }
+  th { background: #0f3057; color: #a0aec0; font-weight: 600; font-size: 0.9rem; }
   td { font-size: 0.95rem; }
   
   .player-info { display: flex; align-items: center; gap: 10px; }
@@ -26,13 +30,14 @@
   .email { font-size: 0.8rem; color: #a0aec0; }
   
   .score { font-weight: 700; color: #f6c453; font-size: 1.1rem; }
-  
   .badge { padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; }
   .badge-anon { background: #718096; color: white; }
   .badge-user { background: #3182ce; color: white; }
   
-  .loading { text-align: center; padding: 40px; color: #a0aec0; }
-  .empty { text-align: center; padding: 40px; color: #a0aec0; }
+  .btn-delete { background: #e53e3e; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 1.1rem; transition: 0.2s; }
+  .btn-delete:hover { background: #c53030; transform: scale(1.05); }
+
+  .loading, .empty { text-align: center; padding: 40px; color: #a0aec0; }
 </style>
 </head>
 <body>
@@ -42,23 +47,30 @@
     <a href="index.html" class="btn">🏠 กลับหน้าหลัก</a>
   </div>
 
+  <div class="controls">
+    <input type="text" id="searchInput" class="search-box" placeholder="🔍 ค้นหาชื่อ หรือ อีเมล..." oninput="renderTable()">
+    <div style="font-size: 0.9rem; color: #a0aec0; display: flex; align-items: center;">
+      ผู้เล่นทั้งหมด: <span id="totalUsers" style="color: #f6c453; font-weight: bold; margin-left: 5px; font-size: 1.1rem;">0</span> คน
+    </div>
+  </div>
+
   <div class="table-container">
     <table>
       <thead>
         <tr>
           <th>ผู้เล่น</th>
           <th>สถานะบัญชี</th>
-          <th>คะแนนรวมทั้งหมด</th>
-          <th>เกมที่เล่นล่าสุด</th>
+          <th>คะแนนรวม</th>
+          <th>เกมล่าสุด</th>
+          <th style="text-align: center;">จัดการ</th>
         </tr>
       </thead>
       <tbody id="userTableBody">
-        <tr><td colspan="4" class="loading">⏳ กำลังโหลดข้อมูลผู้เล่น...</td></tr>
+        <tr><td colspan="5" class="loading">⏳ กำลังโหลดข้อมูล...</td></tr>
       </tbody>
     </table>
   </div>
 
-  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -78,76 +90,103 @@
     const auth = firebase.auth();
 
     const tbody = document.getElementById('userTableBody');
+    let allUsersData = []; // เก็บข้อมูลผู้เล่นทั้งหมดไว้ค้นหา
 
-    // ⭐ ระบบดึงข้อมูลผู้เล่นแบบ Real-time
-    auth.onAuthStateChanged((user) => {
-      if (!user) {
-        tbody.innerHTML = `<tr><td colspan="4" class="empty" style="color:#fc8181;">🔒 กรุณาเข้าสู่ระบบด้วยบัญชีผู้ดูแล (Admin) ก่อนดูข้อมูล</td></tr>`;
+    // ⭐ ฟังก์ชันลบผู้เล่น
+    async function deleteUser(uid, name) {
+      if (confirm(`⚠️ คุณแน่ใจหรือไม่ที่จะลบผู้เล่น "${name}"?\nคะแนนและข้อมูลทั้งหมดจะหายไปถาวร!`)) {
+        try {
+          await db.collection('users').doc(uid).delete();
+          // ข้อมูลจะอัปเดตอัตโนมัติผ่าน onSnapshot
+        } catch (error) {
+          alert("ลบไม่สำเร็จ: " + error.message);
+        }
+      }
+    }
+
+    // ⭐ ฟังก์ชันวาดตารางและค้นหา
+    function renderTable() {
+      const query = document.getElementById('searchInput').value.toLowerCase().trim();
+      tbody.innerHTML = '';
+
+      // กรองข้อมูลตามคำค้นหา
+      const filteredUsers = allUsersData.filter(user => {
+        const name = (user.displayName || 'ผู้เล่นใหม่').toLowerCase();
+        const email = (user.email || 'ไม่มีอีเมล').toLowerCase();
+        return name.includes(query) || email.includes(query);
+      });
+
+      if (filteredUsers.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="empty">ไม่พบผู้เล่นที่ค้นหา</td></tr>`;
         return;
       }
 
-      // ดึงข้อมูลจาก Collection 'users' เรียงจากคะแนนมากไปน้อย
-      db.collection('users').orderBy('totalScore', 'desc').onSnapshot((snapshot) => {
-        tbody.innerHTML = '';
-
-        if (snapshot.empty) {
-          tbody.innerHTML = `<tr><td colspan="4" class="empty">ยังไม่มีผู้เล่นในระบบ</td></tr>`;
-          return;
-        }
-
-        let index = 1;
-        snapshot.forEach((doc) => {
-          const data = doc.data();
-          const name = data.displayName || 'ผู้เล่นใหม่';
-          const initial = (name.trim().charAt(0) || '?').toUpperCase();
-          const email = data.email || 'ไม่มีอีเมล';
-          const totalScore = data.totalScore || 0;
-          
-          // หาเกมที่เล่นล่าสุด
-          let lastGame = '-';
-          if (data.games) {
-            const gameKeys = Object.keys(data.games);
-            if (gameKeys.length > 0) {
-              // หาเกมที่มีค่า lastPlayed ล่าสุด
-              let latestTime = 0;
-              let latestGame = '';
-              gameKeys.forEach(g => {
-                const t = data.games[g].lastPlayed ? new Date(data.games[g].lastPlayed.seconds * 1000).getTime() : 0;
-                if (t > latestTime) { latestTime = t; latestGame = g; }
-              });
-              if (latestGame) {
-                const gameMap = { coding: '🤖 Coding', math: '🔢 คณิต', science: '🔬 วิทย์', english: 'ABC อังกฤษ', thai: '🇹🇭 ไทย', test: '🧪 Test' };
-                lastGame = gameMap[latestGame] || latestGame;
-              }
+      filteredUsers.forEach((data, index) => {
+        const uid = data.uid;
+        const name = data.displayName || 'ผู้เล่นใหม่';
+        const initial = (name.trim().charAt(0) || '?').toUpperCase();
+        const email = data.email || 'ไม่มีอีเมล';
+        const totalScore = data.totalScore || 0;
+        
+        let lastGame = '-';
+        if (data.games) {
+          const gameKeys = Object.keys(data.games);
+          if (gameKeys.length > 0) {
+            let latestTime = 0;
+            let latestGame = '';
+            gameKeys.forEach(g => {
+              const t = data.games[g].lastPlayed ? new Date(data.games[g].lastPlayed.seconds * 1000).getTime() : 0;
+              if (t > latestTime) { latestTime = t; latestGame = g; }
+            });
+            if (latestGame) {
+              const gameMap = { coding: '🤖 Coding', math: '🔢 คณิต', science: '🔬 วิทย์', english: 'ABC อังกฤษ', thai: '🇹🇭 ไทย', test: '🧪 Test' };
+              lastGame = gameMap[latestGame] || latestGame;
             }
           }
+        }
 
-          const isAnon = data.isAnonymous;
-          const badgeHtml = isAnon 
-            ? '<span class="badge badge-anon">ไม่ระบุตัวตน</span>' 
-            : '<span class="badge badge-user">ลงทะเบียน</span>';
+        const badgeHtml = data.isAnonymous 
+          ? '<span class="badge badge-anon">ไม่ระบุตัวตน</span>' 
+          : '<span class="badge badge-user">ลงทะเบียน</span>';
 
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>
-              <div class="player-info">
-                <div class="avatar">${initial}</div>
-                <div>
-                  <div class="name">${index}. ${name}</div>
-                  <div class="email">${email}</div>
-                </div>
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>
+            <div class="player-info">
+              <div class="avatar">${initial}</div>
+              <div>
+                <div class="name">${index + 1}. ${name}</div>
+                <div class="email">${email}</div>
               </div>
-            </td>
-            <td>${badgeHtml}</td>
-            <td class="score">⭐ ${totalScore}</td>
-            <td>${lastGame}</td>
-          `;
-          tbody.appendChild(tr);
-          index++;
+            </div>
+          </td>
+          <td>${badgeHtml}</td>
+          <td class="score">⭐ ${totalScore}</td>
+          <td>${lastGame}</td>
+          <td style="text-align: center;">
+            <button class="btn-delete" onclick="deleteUser('${uid}', '${name}')" title="ลบผู้เล่น">🗑️</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    auth.onAuthStateChanged((user) => {
+      if (!user) {
+        tbody.innerHTML = `<tr><td colspan="5" class="empty" style="color:#fc8181;">🔒 กรุณาล็อกอินที่หน้า Hub หลักก่อน</td></tr>`;
+        return;
+      }
+
+      db.collection('users').orderBy('totalScore', 'desc').onSnapshot((snapshot) => {
+        allUsersData = [];
+        snapshot.forEach((doc) => {
+          allUsersData.push({ uid: doc.id, ...doc.data() });
         });
+        
+        document.getElementById('totalUsers').textContent = allUsersData.length;
+        renderTable(); // วาดตารางใหม่ทุกครั้งที่ข้อมูลเปลี่ยน
       }, (error) => {
-        console.error("Error fetching users:", error);
-        tbody.innerHTML = `<tr><td colspan="4" class="empty" style="color:#fc8181;">❌ เกิดข้อผิดพลาด: ${error.message} (ตรวจสอบสิทธิ์ Firestore Rules)</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" class="empty" style="color:#fc8181;">❌ ${error.message}</td></tr>`;
       });
     });
   </script>

@@ -39,6 +39,20 @@
   .score-line { margin-top: 16px; font-size: .78rem; color: #f6c453; background: rgba(246,196,83,.1); border: 1px dashed rgba(246,196,83,.45); border-radius: 8px; padding: 6px 10px; width: 100%; }
   .score-line.empty { color: #718096; background: transparent; border-color: #2d3748; }
 
+  /* ⭐ Leaderboard Styles */
+  .leaderboard-section { width: 100%; max-width: 1000px; margin-top: 40px; background: #0f3057; border-radius: 15px; padding: 25px; box-shadow: 0 8px 16px rgba(0,0,0,.3); }
+  .leaderboard-section h2 { font-size: 1.4rem; color: #f6c453; margin-bottom: 20px; text-align: center; }
+  .leaderboard-list { display: flex; flex-direction: column; gap: 10px; }
+  .lb-item { display: flex; align-items: center; justify-content: space-between; background: #1b4b75; padding: 12px 20px; border-radius: 10px; border-left: 4px solid transparent; }
+  .lb-item.rank-1 { border-left-color: #f6c453; background: rgba(246,196,83,.15); }
+  .lb-item.rank-2 { border-left-color: #cbd5e1; }
+  .lb-item.rank-3 { border-left-color: #cd7f32; }
+  .lb-left { display: flex; align-items: center; gap: 15px; }
+  .lb-rank { font-size: 1.2rem; font-weight: bold; color: #a0aec0; width: 30px; text-align: center; }
+  .lb-rank.gold { color: #f6c453; font-size: 1.5rem; }
+  .lb-name { font-weight: 600; font-size: 1.05rem; }
+  .lb-score { font-weight: bold; color: #f6c453; font-size: 1.1rem; }
+
   footer { margin-top: 50px; font-size: .85rem; color: #718096; }
   
   /* Modal Styles */
@@ -74,6 +88,14 @@
   </header>
 
   <div class="menu-container" id="menuContainer"></div>
+
+  <!-- ⭐ Leaderboard Section -->
+  <div class="leaderboard-section">
+    <h2>🏆 5 อันดับผู้เล่นเก่งที่สุด</h2>
+    <div class="leaderboard-list" id="leaderboardList">
+      <div style="text-align: center; color: #a0aec0; font-size: 0.9rem; padding: 10px;">⏳ กำลังโหลดข้อมูล...</div>
+    </div>
+  </div>
 
   <footer>&copy; 2026 Game Aladin Project. All rights Reserved.</footer>
 
@@ -169,7 +191,6 @@
 
       signInWithGoogle() { return auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); },
       
-      // ⭐ ฟังก์ชันผูกบัญชี (Link) ไม่ให้คะแนนหาย
       async linkGoogle() {
         const user = auth.currentUser;
         if (!user) throw new Error('ต้องเข้าสู่ระบบก่อน');
@@ -210,7 +231,51 @@
     ).join('');
 
     /* ==========================================
-       4. ระบบ UI Modal
+       4. ⭐ ระบบดึงข้อมูล Leaderboard (Top 5)
+       ========================================== */
+    const lbList = document.getElementById('leaderboardList');
+    
+    db.collection('users').orderBy('totalScore', 'desc').limit(5).onSnapshot(snap => {
+      if (snap.empty) {
+        lbList.innerHTML = '<div style="text-align: center; color: #a0aec0; font-size: 0.9rem;">ยังไม่มีข้อมูลผู้เล่น</div>';
+        return;
+      }
+      
+      let html = '';
+      let rank = 1;
+      snap.forEach(doc => {
+        const data = doc.data();
+        const name = data.displayName || 'ผู้เล่นใหม่';
+        const score = data.totalScore || 0;
+        
+        let rankDisplay = rank;
+        let rankClass = '';
+        let itemClass = `lb-item rank-${rank}`;
+        
+        if (rank === 1) { rankDisplay = '🥇'; rankClass = 'gold'; }
+        else if (rank === 2) { rankDisplay = '🥈'; }
+        else if (rank === 3) { rankDisplay = '🥉'; }
+        else { itemClass = 'lb-item'; } // รีเซ็ตคลาสสำหรับอันดับ 4-5
+
+        html += `
+          <div class="${itemClass}">
+            <div class="lb-left">
+              <div class="lb-rank ${rankClass}">${rankDisplay}</div>
+              <div class="lb-name">${name}</div>
+            </div>
+            <div class="lb-score">⭐ ${score}</div>
+          </div>
+        `;
+        rank++;
+      });
+      lbList.innerHTML = html;
+    }, error => {
+      console.error("Leaderboard Error:", error);
+      lbList.innerHTML = '<div style="text-align: center; color: #fc8181; font-size: 0.9rem;">ไม่สามารถโหลดข้อมูลได้ (ตรวจสอบสิทธิ์)</div>';
+    });
+
+    /* ==========================================
+       5. ระบบ UI Modal
        ========================================== */
     const authArea = document.getElementById('authArea');
     const authModal = document.getElementById('authModal');
@@ -228,7 +293,7 @@
       setMsg(authMsg, '');
       if (isUpgrade) {
         authModalSub.textContent = "ผูกบัญชีเพื่อรักษาคะแนนและเล่นข้ามเครื่อง";
-        document.getElementById('btnAnon').style.display = 'none'; // ซ่อนปุ่ม Anonymous ถ้าจะอัปเกรด
+        document.getElementById('btnAnon').style.display = 'none'; 
       } else {
         authModalSub.textContent = "เข้าสู่ระบบเพื่อเก็บคะแนนสะสมของคุณ";
         document.getElementById('btnAnon').style.display = 'block';
@@ -284,14 +349,15 @@
         }
       });
 
-      // ⭐ ตรวจสอบว่าถ้าเป็น Anonymous และยังไม่มีชื่อ ให้เด้ง Modal ตั้งชื่อ
       if (user.isAnonymous && !profile.displayName) {
         nameModal.classList.add('open');
         nameInput.focus();
       }
     }
 
-    // 5. เริ่มระบบ Auth
+    /* ==========================================
+       6. เริ่มระบบ Auth
+       ========================================== */
     let unsubProfile = null;
     ArcadeScores.onAuth(async function (user) {
       if (unsubProfile) { unsubProfile(); unsubProfile = null; }
@@ -302,9 +368,8 @@
     });
 
     /* ==========================================
-       6. ปุ่มใน Modal
+       7. ปุ่มใน Modal
        ========================================== */
-    // ⭐ อัปเดตปุ่ม Google ให้เช็คว่าถ้าเป็น Anonymous ให้ "ผูกบัญชี" แทนการล็อกอินใหม่
     document.getElementById('btnGoogle').onclick = (e) => withBusy(e.currentTarget, authMsg, async () => { 
         if (auth.currentUser && auth.currentUser.isAnonymous) {
             await ArcadeScores.linkGoogle();
@@ -324,7 +389,6 @@
         closeAuthModal(); 
     });
 
-    // ⭐ ปุ่ม Anonymous: ซ่อน Modal Login แล้วโชว์ Modal ตั้งชื่อแทน
     document.getElementById('btnAnon').onclick = (e) => {
         withBusy(e.currentTarget, authMsg, async () => {
             const cred = await ArcadeScores.signInAnonymously();
@@ -337,15 +401,14 @@
         });
     };
 
-    // ⭐ ปุ่มบันทึกชื่อ
     document.getElementById('btnSaveName').onclick = async function(e) {
         const name = nameInput.value;
         if (!name.trim()) return setMsg(nameMsg, 'กรุณาใส่ชื่อก่อนครับ', 'error');
         
         withBusy(e.currentTarget, nameMsg, async () => {
             await ArcadeScores.updateDisplayName(name);
-            nameModal.classList.remove('open'); // ปิด Modal ตั้งชื่อ
-            setMsg(nameMsg, ''); // ล้างข้อความ
+            nameModal.classList.remove('open'); 
+            setMsg(nameMsg, ''); 
         });
     };
 
