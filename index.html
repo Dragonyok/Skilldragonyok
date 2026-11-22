@@ -215,14 +215,15 @@
        3. วาดเมนู
        ========================================== */
 const GAME_LIST = [
-  { id:'coding',  file:'coding_game.html',      icon:'🤖', title:'เกมสมองกล (Coding)', desc:'ฝึกทักษะการคิดเชิงคำนวณและวางแผนคำสั่ง' },
-  { id:'maze',    file:'maze.html',             icon:'🪙', title:'เขาวงกตหุ่นยนต์', desc:'วางแผนเส้นทาง เก็บเหรียญ และพาหุ่นยนต์ไปถึงประตู' },
-  { id:'math',    file:'math_game.html',         icon:'🔢', title:'เกมคณิตคิดเร็ว', desc:'ฝึกทักษะการคำนวณ บวก ลบ คูณ หาร' },
-  { id:'science', file:'science_game_pro.html',  icon:'🔬', title:'เกมวิทยาศาสตร์', desc:'ผจญภัยไปกับโลกวิทยาศาสตร์สุดสนุก' },
-  { id:'english', file:'eng.html',               icon:'ABC', title:'เกมภาษาอังกฤษ', desc:'ฝึกคำศัพท์และทักษะภาษาอังกฤษ' },
-  { id:'thai',    file:'thai_arcade.html',       icon:'🇹🇭', title:'อาร์เคดภาษาไทย', desc:'สนุกกับเกมฝึกพิมพ์และคำศัพท์ไทย' },
-  { id:'test',    file:'Test.html',               icon:'🧪', title:'เกมทดสอบ', desc:'เข้าเล่นเกม Test' },
-  { id:'racing',  file:'sing-kep-dao.html',       icon:'🏎️', title:'ซิ่งเก็บดาว', desc:'ขับรถเก็บดาว ฝึกตอบคำถาม และผ่านด่านต่าง ๆ' }
+  { id:'coding',   file:'coding_game.html',     icon:'🤖', title:'เกมสมองกล (Coding)', desc:'ฝึกทักษะการคิดเชิงคำนวณและวางแผนคำสั่ง' },
+  { id:'maze',     file:'maze.html',            icon:'🪙', title:'เขาวงกตหุ่นยนต์', desc:'วางแผนเส้นทาง เก็บเหรียญ และพาหุ่นยนต์ไปถึงประตู' },
+  { id:'math',     file:'math_game.html',        icon:'🔢', title:'เกมคณิตคิดเร็ว', desc:'ฝึกทักษะการคำนวณ บวก ลบ คูณ หาร' },
+  { id:'science',  file:'science_game_pro.html', icon:'🔬', title:'เกมวิทยาศาสตร์', desc:'ผจญภัยไปกับโลกวิทยาศาสตร์สุดสนุก' },
+  { id:'english',  file:'eng.html',              icon:'ABC', title:'เกมภาษาอังกฤษ', desc:'ฝึกคำศัพท์และทักษะภาษาอังกฤษ' },
+  { id:'thai',     file:'thai_arcade.html',      icon:'🇹🇭', title:'อาร์เคดภาษาไทย', desc:'สนุกกับเกมฝึกพิมพ์และคำศัพท์ไทย' },
+  { id:'test',     file:'Test.html',             icon:'🧪', title:'เกมทดสอบ', desc:'เข้าเล่นเกม Test' },
+  { id:'racing',   file:'sing-kep-dao.html',     icon:'🏎️', title:'ซิ่งเก็บดาว', desc:'ขับรถเก็บดาว ฝึกตอบคำถาม และผ่านด่านต่าง ๆ' },
+  { id:'fishing',  file:'fishing.html',          icon:'🎣', title:'ตกปลาแสนสนุก', desc:'ฝึกสังเกตสีปลาและนับจำนวน' }
 ];
     document.getElementById('menuContainer').innerHTML = GAME_LIST.map(g => 
       `<a href="${g.file}" class="menu-card">
