@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ระบบผู้ดูแล - Arcade Game Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Prompt', sans-serif; }
+  body { background: #162447; color: #fff; min-height: 100vh; padding: 30px 20px; }
+  
+  .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; max-width: 1000px; margin: 0 auto 20px; }
+  h1 { color: #e43f5a; font-size: 1.8rem; }
+  .btn { background: #e43f5a; color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 10px; font-weight: 600; font-size: 0.9rem; }
+  .btn:hover { background: #c92f48; }
+
+  .table-container { max-width: 1000px; margin: 0 auto; background: #1f4068; border-radius: 15px; overflow-x: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+  table { width: 100%; border-collapse: collapse; text-align: left; }
+  th, td { padding: 15px 20px; border-bottom: 1px solid #2a4a7f; }
+  th { background: #0f3057; color: #a0aec0; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; }
+  td { font-size: 0.95rem; }
+  
+  .player-info { display: flex; align-items: center; gap: 10px; }
+  .avatar { width: 36px; height: 36px; border-radius: 50%; background: #e43f5a; display: grid; place-items: center; font-weight: bold; font-size: 1rem; }
+  .name { font-weight: 600; }
+  .email { font-size: 0.8rem; color: #a0aec0; }
+  
+  .score { font-weight: 700; color: #f6c453; font-size: 1.1rem; }
+  
+  .badge { padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; }
+  .badge-anon { background: #718096; color: white; }
+  .badge-user { background: #3182ce; color: white; }
+  
+  .loading { text-align: center; padding: 40px; color: #a0aec0; }
+  .empty { text-align: center; padding: 40px; color: #a0aec0; }
+</style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>👑 แผงควบคุมผู้ดูแลระบบ</h1>
+    <a href="index.html" class="btn">🏠 กลับหน้าหลัก</a>
+  </div>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>ผู้เล่น</th>
+          <th>สถานะบัญชี</th>
+          <th>คะแนนรวมทั้งหมด</th>
+          <th>เกมที่เล่นล่าสุด</th>
+        </tr>
+      </thead>
+      <tbody id="userTableBody">
+        <tr><td colspan="4" class="loading">⏳ กำลังโหลดข้อมูลผู้เล่น...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAGu__RjEy0WRI7hYDdKfai9vio8GqWoqw",
+      authDomain: "skilldragonyok.firebaseapp.com",
+      projectId: "skilldragonyok",
+      storageBucket: "skilldragonyok.firebasestorage.app",
+      messagingSenderId: "894981973450",
+      appId: "1:894981973450:web:39d6f4c2170e774c1d1b33"
+    };
+
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    const tbody = document.getElementById('userTableBody');
+
+    // ⭐ ระบบดึงข้อมูลผู้เล่นแบบ Real-time
+    auth.onAuthStateChanged((user) => {
+      if (!user) {
+        tbody.innerHTML = `<tr><td colspan="4" class="empty" style="color:#fc8181;">🔒 กรุณาเข้าสู่ระบบด้วยบัญชีผู้ดูแล (Admin) ก่อนดูข้อมูล</td></tr>`;
+        return;
+      }
+
+      // ดึงข้อมูลจาก Collection 'users' เรียงจากคะแนนมากไปน้อย
+      db.collection('users').orderBy('totalScore', 'desc').onSnapshot((snapshot) => {
+        tbody.innerHTML = '';
+
+        if (snapshot.empty) {
+          tbody.innerHTML = `<tr><td colspan="4" class="empty">ยังไม่มีผู้เล่นในระบบ</td></tr>`;
+          return;
+        }
+
+        let index = 1;
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          const name = data.displayName || 'ผู้เล่นใหม่';
+          const initial = (name.trim().charAt(0) || '?').toUpperCase();
+          const email = data.email || 'ไม่มีอีเมล';
+          const totalScore = data.totalScore || 0;
+          
+          // หาเกมที่เล่นล่าสุด
+          let lastGame = '-';
+          if (data.games) {
+            const gameKeys = Object.keys(data.games);
+            if (gameKeys.length > 0) {
+              // หาเกมที่มีค่า lastPlayed ล่าสุด
+              let latestTime = 0;
+              let latestGame = '';
+              gameKeys.forEach(g => {
+                const t = data.games[g].lastPlayed ? new Date(data.games[g].lastPlayed.seconds * 1000).getTime() : 0;
+                if (t > latestTime) { latestTime = t; latestGame = g; }
+              });
+              if (latestGame) {
+                const gameMap = { coding: '🤖 Coding', math: '🔢 คณิต', science: '🔬 วิทย์', english: 'ABC อังกฤษ', thai: '🇹🇭 ไทย', test: '🧪 Test' };
+                lastGame = gameMap[latestGame] || latestGame;
+              }
+            }
+          }
+
+          const isAnon = data.isAnonymous;
+          const badgeHtml = isAnon 
+            ? '<span class="badge badge-anon">ไม่ระบุตัวตน</span>' 
+            : '<span class="badge badge-user">ลงทะเบียน</span>';
+
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>
+              <div class="player-info">
+                <div class="avatar">${initial}</div>
+                <div>
+                  <div class="name">${index}. ${name}</div>
+                  <div class="email">${email}</div>
+                </div>
+              </div>
+            </td>
+            <td>${badgeHtml}</td>
+            <td class="score">⭐ ${totalScore}</td>
+            <td>${lastGame}</td>
+          `;
+          tbody.appendChild(tr);
+          index++;
+        });
+      }, (error) => {
+        console.error("Error fetching users:", error);
+        tbody.innerHTML = `<tr><td colspan="4" class="empty" style="color:#fc8181;">❌ เกิดข้อผิดพลาด: ${error.message} (ตรวจสอบสิทธิ์ Firestore Rules)</td></tr>`;
+      });
+    });
+  </script>
+</body>
+</html>
