@@ -54,7 +54,27 @@
     },
 
     /* ⭐ ฟังก์ชันนี้คือหัวใจ — เรียกจากในเกมเพื่อส่งคะแนน */
-    async submitScore(gameId, score, extra) {
+    async submitScore /* ฟังก์ชันให้ผู้เล่นตั้งชื่อเอง */
+async updateDisplayName(newName) {
+  const user = this.currentUser();
+  if (!user) throw new Error('ต้องเข้าสู่ระบบก่อน');
+  
+  const cleanName = String(newName).trim().substring(0, 20); // จำกัด 20 ตัวอักษร
+  if (!cleanName) throw new Error('กรุณากรอกชื่อ');
+
+  // อัปเดตลง Firebase Auth (ถ้าทำได้)
+  try {
+    await user.updateProfile({ displayName: cleanName });
+  } catch (err) {
+    console.warn('Auth profile update skipped:', err);
+  }
+
+  // อัปเดตลง Firestore
+  return this.db.collection('users').doc(user.uid).update({
+    displayName: cleanName,
+    lastSeen: TS()
+  });
+},(gameId, score, extra) {
       const user = this.currentUser();
       if (!user) throw new Error('ต้องเข้าสู่ระบบก่อนจึงจะบันทึกคะแนนได้');
       const s = Math.max(0, Math.round(Number(score) || 0));
